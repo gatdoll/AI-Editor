@@ -1,0 +1,79 @@
+/* Gaya dasar Mantiq Editor (Fase 20). Token di config/ui.css. */
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ui-bg); color: var(--ui-text); font: 14px/1.5 var(--ui-font); -webkit-font-smoothing: antialiased; }
+button, input, select, textarea { font: inherit; }
+button, select, summary { cursor: pointer; }
+button, input, select, textarea { color: inherit; }
+
+/* Elemen dasar: tombol sekunder, input gelap */
+button { border: 1px solid var(--ui-line); border-radius: var(--ui-radius); background: var(--ui-raised); padding: 7px 12px; min-height: 32px; font-weight: 500; transition: background var(--ui-speed) var(--ui-ease), border-color var(--ui-speed) var(--ui-ease); }
+button:hover:not(:disabled) { background: var(--ui-hover); border-color: var(--ui-line-strong); }
+button:disabled { opacity: .45; cursor: not-allowed; box-shadow: none !important; }
+input:not([type=checkbox]):not([type=radio]):not([type=range]), select, textarea { background: var(--ui-inset); border: 1px solid var(--ui-line); border-radius: var(--ui-radius); padding: 8px 12px; max-width: 100%; }
+input::placeholder, textarea::placeholder { color: var(--ui-muted); }
+input[type=checkbox], input[type=radio], input[type=range], progress { accent-color: var(--ui-brand); }
+input[type=file]::file-selector-button { background: var(--ui-brand); color: #fff; border: 0; border-radius: var(--ui-radius-sm); padding: 9px 16px; margin-right: 12px; cursor: pointer; }
+a { color: var(--ui-accent); text-decoration: none; }
+a:hover { color: var(--ui-text-2); text-decoration: underline; }
+:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ui-focus); }
+::selection { background: var(--ui-accent-soft); color: var(--ui-text); }
+* { scrollbar-width: thin; scrollbar-color: var(--ui-line-strong) transparent; }
+h1, h2, h3, p { overflow-wrap: anywhere; }
+svg { flex-shrink: 0; vertical-align: middle; }
+
+/* Tipografi */
+.display { font-family: var(--ui-display); font-weight: 400; letter-spacing: -.01em; line-height: 1.15; }
+.eyebrow { font: 600 12px/1.4 var(--ui-font); letter-spacing: .22em; text-transform: uppercase; color: var(--ui-accent); }
+.label { font: 600 11px/1.4 var(--ui-font); letter-spacing: .08em; text-transform: uppercase; color: var(--ui-muted); }
+.muted { color: var(--ui-muted); }
+.text-2 { color: var(--ui-text-2); }
+
+/* Pola Mantiq (board Komponen) */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 32px; padding: 0 12px; border-radius: var(--ui-radius); border: 1px solid var(--ui-line); background: var(--ui-raised); color: var(--ui-text); font: 500 13px/1.2 var(--ui-font); white-space: nowrap; text-decoration: none; }
+.btn:hover:not(:disabled) { background: var(--ui-hover); border-color: var(--ui-line-strong); color: var(--ui-text); text-decoration: none; }
+.primary-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; padding: 0 16px; border-radius: var(--ui-radius); border: 1px solid transparent; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.btn.primary, .primary-action { background: var(--ui-brand); border-color: var(--ui-brand); color: #fff; box-shadow: var(--ui-shadow-brand); }
+.btn.primary:hover:not(:disabled), .primary-action:hover:not(:disabled) { background: var(--ui-brand-hover); border-color: var(--ui-brand-hover); color: #fff; text-decoration: none; }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--ui-text-2); }
+.btn.ghost:hover:not(:disabled) { background: var(--ui-accent-soft); border-color: transparent; color: var(--ui-text); }
+.btn.danger { background: var(--ui-danger-fill); border-color: var(--ui-danger-fill); color: #fff; }
+.btn.lg { min-height: 42px; padding: 0 18px; font-size: 14px; }
+.btn.sm { min-height: 28px; padding: 0 10px; font-size: 12px; border-radius: 10px; }
+.btn.icon { width: 32px; padding: 0; }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--ui-line); background: var(--ui-raised); color: var(--ui-text-2); font-size: 12px; font-weight: 500; white-space: nowrap; }
+.dot { width: 8px; height: 8px; border-radius: 999px; flex: none; display: inline-block; background: currentColor; }
+.card { background: var(--ui-panel); border: 1px solid var(--ui-line); border-radius: var(--ui-radius-lg); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: var(--ui-radius); background: var(--ui-inset); border: 1px solid var(--ui-line); }
+.seg > button { min-height: 28px; padding: 0 10px; border: 0; border-radius: 9px; background: transparent; color: var(--ui-text-2); font: 500 12px var(--ui-font); }
+.seg > button:hover:not(:disabled) { background: var(--ui-accent-soft); border: 0; color: var(--ui-text); }
+.seg > button[aria-pressed="true"], .seg > button[aria-checked="true"], .seg > button[aria-selected="true"] { background: var(--ui-brand); color: #fff; }
+
+/* Kerangka halaman */
+.app-shell { max-width: 1440px; margin: auto; padding: 0 44px 60px; }
+.app-nav { height: 72px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--ui-line); gap: 20px; }
+.brand { display: inline-flex; align-items: center; gap: 12px; color: var(--ui-text); font-size: 16px; font-weight: 600; letter-spacing: -.2px; }
+.brand:hover { color: var(--ui-text); text-decoration: none; }
+/* Slot logo: diganti PNG logo Mantiq (versi terang) bila tersedia */
+.brand-mark { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; color: #fff; background: var(--ui-brand); }
+.page-heading { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 36px 0 24px; }
+.page-heading h1 { margin: 8px 0 0; font: 400 clamp(26px, 3vw, 40px)/1.2 var(--ui-display); letter-spacing: -.01em; }
+.page-heading p { margin: 12px 0 0; color: var(--ui-text-2); }
+.status-pill { display: inline-flex; align-items: center; gap: 7px; color: var(--ui-text-2); font-size: 12px; font-weight: 500; height: 24px; padding: 0 10px; background: var(--ui-raised); border: 1px solid var(--ui-line); border-radius: 999px; white-space: nowrap; }
+.status-pill::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--ui-muted); }
+.status-pill[data-status=ready]::before { background: var(--ui-success); }
+.status-pill[data-status=failed] { color: var(--ui-danger); }
+.status-pill[data-status=failed]::before { background: var(--ui-danger); }
+.status-pill:is([data-status=uploading], [data-status=ingesting], [data-status=transcribing], [data-status=analyzing])::before { background: var(--ui-info); }
+.project-page { max-width: 1120px; }
+.project-page > section, .project-page > .review-section, .demo-card { padding: 24px; border: 1px solid var(--ui-line); border-radius: var(--ui-radius-lg); background: var(--ui-panel); margin: 20px 0; }
+.project-page h2 { font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+.project-page video { border: 1px solid var(--ui-line); border-radius: var(--ui-radius-lg); background: var(--ui-stage); }
+.upload-zone { text-align: center; padding: 46px 24px !important; border-style: dashed !important; border-color: var(--ui-line-strong) !important; }
+.upload-zone p { max-width: 620px; margin: 16px auto 24px; color: var(--ui-text-2); }
+.pipeline { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 12px; }
+.pipeline-step { padding: 12px; background: var(--ui-raised); border: 1px solid var(--ui-line); border-radius: var(--ui-radius); font-size: 12px; }
+.pipeline-step small { display: block; margin: 6px 0 0 !important; }
+.pipeline-step progress { max-width: 100%; }
+.error-message { color: var(--ui-danger); padding: 12px 16px; background: var(--ui-danger-soft); border: 1px solid rgba(224, 115, 95, .35); border-radius: var(--ui-radius); }
+@media(max-width:760px) { .app-shell { padding: 0 16px 32px; } .app-nav { height: 64px; } .page-heading { align-items: flex-start; flex-direction: column; } .pipeline { grid-template-columns: 1fr 1fr; } }
+@media(prefers-reduced-motion:reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }

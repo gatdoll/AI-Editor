@@ -1,0 +1,34 @@
+{
+  "name": "@app/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "render:sample": "node --experimental-strip-types src/render-sample.ts",
+    "typecheck": "tsc --noEmit",
+    "start": "node --env-file=../../.env src/main.ts",
+    "start:dev": "node --watch --env-file=../../.env src/main.ts",
+    "smoke": "node --env-file=../../.env src/smoke.ts",
+    "analyze-smoke": "node --env-file=../../.env src/analyze-smoke.ts",
+    "chunk-smoke": "node --env-file=../../.env src/chunk-smoke.ts",
+    "render-smoke": "node --env-file=../../.env src/render-smoke.ts",
+    "creative-smoke": "node --env-file=../../.env src/creative-smoke.ts",
+    "render-creative": "node --env-file=../../.env src/render-creative-version.ts",
+    "opinion-smoke": "node src/opinion-smoke.ts",
+    "own-assets-smoke": "node src/own-assets/smoke.ts",
+    "ui-shot": "node src/ui-shot.ts"
+  },
+  "dependencies": {
+    "@app/shared": "*",
+    "@remotion/bundler": "4.0.539",
+    "@remotion/install-whisper-cpp": "4.0.539",
+    "@remotion/renderer": "4.0.539",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.539"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "name": "@app/shared",
+  "version": "0.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "zod": "^4"
+  },
+  "type": "module",
+  "exports": {
+    "./manual": "./src/manual.ts",
+    "./subtitles": "./src/subtitles.ts",
+    "./derived-media": "./src/derived-media.ts",
+    "./transcript-segments": "./src/transcript-segments.ts",
+    "./sfx": "./src/sfx.ts",
+    "./sfx-library": "./src/sfx-library.ts",
+    "./voiceover": "./src/voiceover.ts",
+    "./voiceover-store": "./src/voiceover-store.ts",
+    "./material-roles": "./src/material-roles.ts",
+    "./safe-url": "./src/safe-url.ts",
+    "./opinion": "./src/opinion.ts",
+    "./opinion-store": "./src/opinion-store.ts",
+    "./own-assets": "./src/own-assets.ts",
+    "./own-assets-store": "./src/own-assets-store.ts",
+    "./material-notes": "./src/material-notes.ts",
+    "./talent": "./src/talent.ts",
+    "./font-library": "./src/font-library.ts",
+    "./glossary": "./src/glossary.ts",
+    "./rig": "./src/rig.ts",
+    "./rig-store": "./src/rig-store.ts",
+    "./reference": "./src/reference.ts",
+    "./reference-store": "./src/reference-store.ts",
+    ".": "./src/index.ts",
+    "./edl": "./src/edl.ts",
+    "./reel": "./src/reel.ts",
+    "./reel-db": "./src/reel-db.ts",
+    "./errors": "./src/errors.ts",
+    "./phrase": "./src/phrase.ts",
+    "./ops": "./src/ops.ts",
+    "./edl-save": "./src/edl-save.ts",
+    "./creative-store": "./src/creative-store.ts",
+    "./prompt-undo": "./src/prompt-undo.ts",
+    "./params": "./src/params.ts",
+    "./keywords": "./src/keywords.ts"
+  }
+}

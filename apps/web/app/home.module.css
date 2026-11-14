@@ -1,0 +1,49 @@
+.demoLink { display: flex; align-items: center; gap: 8px; color: var(--ui-muted); font-size: 12px; }
+.projectTotal { color: var(--ui-muted); display: flex; align-items: center; gap: 10px; }
+.createPanel { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 30px; border: 1px solid var(--ui-line); border-radius: 16px; background: linear-gradient(115deg,var(--ui-accent-soft),var(--ui-panel) 60%); margin: 8px 0 38px; }
+.createIntro { display: flex; align-items: center; gap: 20px; }
+.largeMark { display: grid; place-items: center; width: 54px; height: 54px; border: 1px solid var(--ui-line); border-radius: 15px; color: var(--ui-accent); flex-shrink: 0; }
+.createIntro h2 { margin: 0 0 5px; font-size: 19px; font-weight: 600; letter-spacing: -.4px; }
+.createIntro p { margin: 0; font-size: 12px; color: var(--ui-muted); }
+.createForm { display: flex; flex-wrap: wrap; gap: 8px; min-width: 46%; max-width: 620px; }
+.createForm input { min-width: 0; flex: 1 1 100%; } /* Fase 19: empat jenis project: nama satu baris penuh, tombol di bawahnya */
+.createForm button { white-space: nowrap; flex: 1 1 auto; justify-content: center; }
+.libraryHeader { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 24px; }
+.libraryHeader h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -.4px; }
+.libraryHeader h2 span { margin-left: 8px; font-size: 11px; color: var(--ui-muted); background: var(--ui-raised); padding: 3px 7px; border-radius: 6px; vertical-align: middle; }
+.libraryHeader p { margin: 4px 0 0; color: var(--ui-muted); font-size: 12px; }
+.search { display: flex; align-items: center; gap: 9px; padding: 0 12px; color: var(--ui-muted); border: 1px solid var(--ui-line); border-radius: 9px; background: var(--ui-panel); }
+.search input { border: 0 !important; background: transparent !important; width: 200px; padding-left: 0 !important; }
+.grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 22px; }
+.projectCard { color: var(--ui-text); background: var(--ui-panel); border: 1px solid var(--ui-line); border-radius: 14px; overflow: hidden; transition: transform var(--ui-speed), border-color var(--ui-speed); }
+.projectCard:hover { text-decoration: none; transform: translateY(-3px); border-color: var(--ui-accent); }
+.cover { height: 170px; display: flex; align-items: center; justify-content: center; position: relative; background: linear-gradient(135deg,var(--ui-track-video),var(--ui-panel)); color: var(--ui-accent); overflow: hidden; }
+.cover[data-variant="1"] { background: linear-gradient(135deg,var(--ui-track-camera),var(--ui-panel)); color: var(--ui-blue); }
+.cover[data-variant="2"] { background: linear-gradient(135deg,var(--ui-track-caption),var(--ui-panel)); color: var(--ui-purple); }
+.coverGrid { position: absolute; inset: 0; background-image: linear-gradient(var(--ui-line) 1px,transparent 1px),linear-gradient(90deg,var(--ui-line) 1px,transparent 1px); background-size: 36px 36px; opacity: .35; mask-image: linear-gradient(black,transparent); }
+.coverIndex { position: absolute; top: 14px; left: 18px; font: 11px var(--ui-mono); opacity: .65; }
+.cover > .eyebrow, .cover > span:last-child { position: absolute; left: 18px; bottom: 14px; font-size: 9px; }
+.openProject { position: absolute; right: 16px; bottom: 14px; display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--ui-line); border-radius: 50%; }
+.cardContent { padding: 18px; }
+.cardTitle { display: flex; align-items: flex-start; gap: 10px; justify-content: space-between; }
+.cardTitle h3 { font-size: 14px; margin: 0; font-weight: 600; line-height: 1.5; }
+.cardMeta { display: flex; justify-content: space-between; gap: 8px; margin-top: 20px; font-size: 10px; color: var(--ui-muted); }
+.empty { min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--ui-muted); border: 1px dashed var(--ui-line); border-radius: 14px; }
+.empty h3 { color: var(--ui-text); margin-bottom: 0; }
+.footer { display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid var(--ui-line); margin-top: 48px; padding-top: 20px; color: var(--ui-muted); font-size: 11px; }
+@media(max-width:1100px) { .createPanel { align-items: stretch; flex-direction: column; gap: 22px; } .grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) { .grid { grid-template-columns: 1fr; } .createPanel { padding: 20px; } .createForm { flex-direction: column; } .libraryHeader { align-items: stretch; flex-direction: column; } .search input { width: 100%; } .footer { flex-direction: column; } }
+
+/* Hapus project: tombol di pojok kartu, konfirmasi di dalam kartu */
+.cardWrap { position: relative; }
+.cardWrap .projectCard { display: block; height: 100%; }
+.deleteBtn { position: absolute; top: 10px; right: 10px; z-index: 2; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--ui-line); background: color-mix(in srgb, var(--ui-panel) 85%, transparent); color: var(--ui-muted); cursor: pointer; opacity: .55; transition: opacity var(--ui-speed), color var(--ui-speed), border-color var(--ui-speed); }
+.cardWrap:hover .deleteBtn, .deleteBtn:focus-visible { opacity: 1; }
+.deleteBtn:hover { color: var(--ui-danger); border-color: var(--ui-danger); }
+.confirm { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; gap: 8px; justify-content: center; padding: 18px; border-radius: 14px; border: 1px solid var(--ui-danger); background: var(--ui-panel); font-size: 13px; }
+.confirm p { margin: 0; color: var(--ui-muted); }
+.confirm label { display: flex; gap: 8px; align-items: flex-start; }
+.confirmNote { font-size: 12px; }
+.confirmActions { display: flex; gap: 8px; margin-top: 4px; }
+.confirmActions button { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--ui-line); background: transparent; color: var(--ui-text); cursor: pointer; }
+.confirmDelete { background: var(--ui-danger) !important; border-color: var(--ui-danger) !important; color: #fff !important; }

@@ -1,0 +1,110 @@
+/* Fase 13: project motion graphics (brief + workspace). Token warna dari globals.css. */
+.loading { padding: 32px; color: var(--ui-muted); }
+.muted { color: var(--ui-muted); font-size: 12px; }
+
+/* ---- brief */
+.briefPage { min-height: 100dvh; background: var(--ui-bg); color: var(--ui-text); padding: 16px; }
+.nav { display: flex; gap: 16px; align-items: center; max-width: 880px; margin: 0 auto 16px; font-size: 13px; color: var(--ui-muted); }
+.briefCard { max-width: 880px; margin: 0 auto; display: grid; gap: 14px; padding: 24px; border: 1px solid var(--ui-line); border-radius: 14px; background: var(--ui-panel); }
+.briefCard h1 { margin: 0; font-size: 26px; }
+.briefCard p { margin: 0; color: var(--ui-muted); }
+.brief { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--ui-line); background: var(--ui-raised); color: inherit; font: inherit; resize: vertical; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button, .seg button { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--ui-line); background: transparent; color: var(--ui-text); cursor: pointer; font-size: 12px; }
+.chips button:hover { border-color: var(--ui-accent); }
+.actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.msg { color: var(--ui-danger); font-size: 13px; }
+
+/* ---- pengaturan (dipakai di brief dan workspace) */
+.settings { display: grid; gap: 12px; }
+.field { display: grid; gap: 6px; font-size: 13px; }
+.field > span { color: var(--ui-muted); font-size: 12px; }
+.field input[type=number] { width: 80px; padding: 5px; border-radius: 6px; border: 1px solid var(--ui-line); background: var(--ui-raised); color: inherit; }
+.field textarea { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--ui-line); background: var(--ui-raised); color: inherit; font: 12px/1.4 var(--ui-mono, monospace); }
+.field select { width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--ui-line); background: var(--ui-raised); color: inherit; font-size: 13px; }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg button[aria-pressed=true] { border-color: var(--ui-accent); color: var(--ui-accent); }
+.inline { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; margin-left: 10px; }
+.materials { display: grid; gap: 6px; }
+.material { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto auto auto; gap: 8px; align-items: center; padding: 6px; border: 1px solid var(--ui-line); border-radius: 8px; }
+.material img { width: 40px; height: 40px; object-fit: contain; background: repeating-conic-gradient(#2a2a2a 0 25%, #1c1c1c 0 50%) 0 0 / 10px 10px; border-radius: 4px; }
+.audioIcon { width: 40px; height: 40px; display: grid; place-items: center; font-size: 20px; color: var(--ui-accent); }
+.matName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.matMeta { color: var(--ui-muted); font-size: 11px; }
+.x { border: 0; background: transparent; color: var(--ui-muted); cursor: pointer; }
+.x:hover { color: var(--ui-danger); }
+.uploadBtn { display: block; text-align: center; padding: 10px; border: 1px dashed var(--ui-line); border-radius: 8px; cursor: pointer; font-size: 12px; color: var(--ui-muted); }
+.uploadBtn:hover { border-color: var(--ui-accent); color: var(--ui-text); }
+.link { border: 0; background: transparent; color: var(--ui-accent); cursor: pointer; padding: 0; font-size: 12px; text-align: left; }
+
+/* ---- workspace */
+.root { height: 100dvh; display: grid; grid-template-columns: 360px minmax(0, 1fr) 300px; grid-template-rows: 56px minmax(0, 1fr); background: var(--ui-bg); color: var(--ui-text); }
+.top { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 0 16px; border-bottom: 1px solid var(--ui-line); }
+.top small { display: block; font-size: 10px; color: var(--ui-muted); letter-spacing: .08em; }
+.home { color: var(--ui-muted); }
+.spacer { flex: 1; }
+.toast { font-size: 12px; padding: 5px 10px; border: 1px solid var(--ui-accent); border-radius: 6px; max-width: 40vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.left { border-right: 1px solid var(--ui-line); overflow: auto; min-height: 0; }
+.center { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px; overflow: auto; min-height: 0; }
+.stage { position: relative; height: min(70vh, 100%); max-width: 100%; background: #000; border-radius: 8px; overflow: hidden; }
+.empty { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--ui-muted); font-size: 13px; pointer-events: none; }
+.info { font-size: 12px; color: var(--ui-muted); }
+.warn { font-size: 12px; color: var(--ui-warning); max-width: 560px; }
+.outputs { display: grid; gap: 4px; font-size: 12px; width: min(560px, 100%); }
+.right { border-left: 1px solid var(--ui-line); padding: 14px; overflow: auto; min-height: 0; }
+.right h3 { margin: 0 0 10px; font-size: 13px; }
+@media (max-width: 1100px) { .root { grid-template-columns: 320px minmax(0, 1fr); grid-template-rows: 56px auto auto; height: auto; } .right { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--ui-line); } }
+@media (max-width: 720px) { .root { display: flex; flex-direction: column; } .stage { height: auto; width: 100%; } }
+.linkRow { display: flex; gap: 6px; }
+.linkRow input { flex: 1; min-width: 0; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--ui-line); background: var(--ui-raised); color: inherit; font-size: 12px; }
+.linkRow button { padding: 7px 12px; border-radius: 8px; border: 1px solid var(--ui-line); background: transparent; color: var(--ui-text); cursor: pointer; font-size: 12px; }
+
+/* Fase 19: Opinion Motion. Panel kanan lebih lebar agar kandidat aset terlihat jelas. */
+.rootWide { grid-template-columns: 340px minmax(0, 1fr) 380px; }
+@media (max-width: 1100px) { .rootWide { grid-template-columns: 320px minmax(0, 1fr); } }
+.assetPanel { display: grid; gap: 12px; font-size: 13px; }
+.assetPanel select, .assetPanel input:not([type=checkbox]), .assetPanel textarea, .shotBox select { padding: 6px 8px; border-radius: 8px; border: 1px solid var(--ui-line); background: var(--ui-raised); color: inherit; font: inherit; font-size: 12px; min-width: 0; }
+.jobBox { display: grid; gap: 4px; padding: 10px; border: 1px solid var(--ui-accent); border-radius: 8px; background: var(--ui-accent-soft); font-size: 12px; }
+.assetSummary { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--ui-muted); }
+.mention { display: grid; gap: 8px; padding: 10px; border: 1px solid var(--ui-line); border-radius: 10px; background: var(--ui-panel); }
+.mention[data-status="dipilih"] { border-color: var(--ui-success); }
+.mention[data-status="tidak-dipakai"] { opacity: 0.6; }
+.mentionHead { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mentionHead b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.badge { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: var(--ui-raised); color: var(--ui-muted); }
+.statusChip { font-size: 11px; color: var(--ui-muted); white-space: nowrap; }
+.statusChip[data-status="dipilih"] { color: var(--ui-success); }
+.context { margin: 0; font-size: 12px; color: var(--ui-muted); font-style: italic; }
+.candGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.candGrid[data-kind="berita"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cand { display: grid; gap: 3px; padding: 3px; border: 2px solid transparent; border-radius: 8px; background: var(--ui-raised); cursor: pointer; color: var(--ui-muted); font-size: 10px; text-align: center; min-width: 0; }
+.cand img { width: 100%; aspect-ratio: 1; object-fit: cover; object-position: center 25%; border-radius: 5px; background: #000; }
+.candGrid[data-kind="berita"] .cand img { aspect-ratio: 3 / 4; object-position: top; }
+.candGrid[data-kind="brand"] .cand img { object-fit: contain; background: #fff; }
+.cand span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cand[aria-pressed="true"] { border-color: var(--ui-success); color: var(--ui-text); }
+.cand:disabled { cursor: wait; }
+.article { display: grid; gap: 2px; font-size: 12px; }
+.article a { color: var(--ui-accent); overflow-wrap: anywhere; }
+.shotBox { display: grid; gap: 6px; font-size: 12px; }
+.shotBox[open] { padding: 8px; border: 1px dashed var(--ui-line); border-radius: 8px; }
+.shotBox summary { cursor: pointer; color: var(--ui-accent); }
+.shotBox label { display: flex; gap: 6px; align-items: center; }
+.shotBox button, .mentionActions button:not(.link) { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--ui-line); background: transparent; color: var(--ui-text); cursor: pointer; font-size: 12px; white-space: nowrap; }
+.mentionActions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.mentionActions input { flex: 1 1 150px; min-width: 0; }
+/* Panel kanan tidak boleh melebar melewati layar: semua isi grid boleh menyusut */
+.assetPanel, .mention { grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.assetPanel > *, .mention > * { min-width: 0; }
+.mentionHead { flex-wrap: wrap; }
+.pickLabel { display: block; margin-top: 2px; padding: 3px 0; border-radius: 5px; background: var(--ui-brand); color: #fff; font-size: 11px; font-weight: 600; }
+.cand[aria-pressed="true"] .pickLabel { background: var(--ui-success); }
+/* Ringkasan + Buat motion selalu terlihat di bawah panel Aset (kartu sebutan bisa banyak) */
+.assetFooter { position: sticky; bottom: -14px; z-index: 2; display: grid; gap: 6px; margin: 0 -14px -14px; padding: 10px 14px 14px; background: var(--ui-bg); border-top: 1px solid var(--ui-line); box-shadow: 0 -8px 16px rgba(0, 0, 0, .35); }
+.decideRow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.decideRow button { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--ui-line); background: var(--ui-raised); color: var(--ui-text); font-size: 12px; cursor: pointer; }
+.miniUpload { padding: 6px 10px; border-radius: 8px; border: 1px dashed var(--ui-line); cursor: pointer; font-size: 12px; white-space: nowrap; color: var(--ui-muted); }
+/* Pilihan model di halaman brief */
+.modelRow { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; align-items: start; }
+.modelPick { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.modelPick select { width: auto; flex: 1 1 160px; }

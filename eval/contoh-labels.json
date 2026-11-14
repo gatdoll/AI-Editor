@@ -1,0 +1,11 @@
+{
+  "_catatan": "Contoh format label untuk video uji sintetis (project 'Tes Fase 3'). Salin dan isi sendiri untuk video Anda: tonton video, catat detik awal/akhir bagian yang seharusnya dipotong.",
+  "cuts": [
+    { "start": 0.15, "end": 4.63, "kind": "retake", "note": "take pertama sapaan 'Hello everyone, welcome to my channel.'" },
+    { "start": 11.7, "end": 12.6, "kind": "filler", "note": "'Um,'" },
+    { "start": 16.49, "end": 18.62, "kind": "correction", "note": "'Premiere. I mean,' lalu DaVinci Resolve" }
+  ],
+  "keep": [
+    { "start": 24.88, "end": 25.8, "note": "'very, very' = penekanan sengaja, jangan dipotong" }
+  ]
+}

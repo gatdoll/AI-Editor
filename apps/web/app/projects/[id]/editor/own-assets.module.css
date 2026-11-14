@@ -1,0 +1,34 @@
+/* Fase 21: tab Aset (aset sendiri di video bicara). Memakai token warna editor. */
+.panel { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; font-size: 12px; }
+.intro { margin: 0; color: var(--dim); line-height: 1.6; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.drop { border: 1px dashed var(--line); border-radius: 8px; padding: 14px; text-align: center; color: var(--dim); background: var(--panel2); cursor: pointer; }
+.drop[data-over=true] { border-color: var(--accent); color: var(--text); }
+.btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel2); color: var(--text); font-size: 12px; }
+.btn:hover:not(:disabled) { border-color: var(--dim); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.primary { background: var(--ui-brand, var(--accent)); border-color: var(--ui-brand, var(--accent)); color: #fff; font-weight: 600; }
+.link { background: none; border: 0; padding: 0; color: var(--accent); font-size: 12px; text-decoration: underline; cursor: pointer; }
+.link:disabled { opacity: .45; cursor: not-allowed; }
+.meta { color: var(--dim); font-size: 11px; }
+.warn { color: var(--warn, #e0a03a); font-size: 12px; }
+.err { color: var(--bad); font-size: 12px; }
+.job { border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--panel2); display: flex; flex-direction: column; gap: 6px; }
+.card { border: 1px solid var(--line); border-radius: 8px; background: var(--panel2); padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.card[data-status=dipakai] { border-color: var(--ok); }
+.card[data-status=tidak-dipakai] { opacity: .65; }
+.head { display: grid; grid-template-columns: 64px 1fr auto; gap: 10px; align-items: start; }
+.thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; background: var(--bg); border: 1px solid var(--line); }
+.name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip { font-size: 10px; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--dim); white-space: nowrap; }
+.chip[data-status=dipakai] { color: var(--ok); border-color: var(--ok); }
+.note { width: 100%; resize: vertical; min-height: 44px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit; font-size: 12px; }
+.note:focus { outline: none; border-color: var(--accent); }
+.opt { border: 1px solid var(--line); border-radius: 6px; padding: 8px; background: var(--bg); display: flex; flex-direction: column; gap: 4px; }
+.opt[aria-current=true] { border-color: var(--ok); }
+.optHead { display: flex; gap: 8px; align-items: center; }
+.optHead b { font-size: 11px; }
+.time { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; font-size: 11px; cursor: pointer; font-variant-numeric: tabular-nums; }
+.quote { margin: 0; color: var(--text); line-height: 1.5; }
+.footer { position: sticky; bottom: -14px; margin: 0 -14px -14px; padding: 10px 14px; border-top: 1px solid var(--line); background: var(--panel); display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.select { padding: 5px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel2); color: var(--text); font-size: 12px; }
