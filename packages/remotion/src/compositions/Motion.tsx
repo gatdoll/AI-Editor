@@ -11,8 +11,8 @@ export const Motion = (p: MotionProps & { onCreativeError?: CreativeErrorHandler
   // Data kode AI = motionCreativeData, kecuali font: nama keluarga yang SUDAH dimuat (bukan label tampilan)
   const data: CreativeData = {
     width: p.width, height: p.height, fps: p.fps, durationInFrames: p.durationInFrames, aspect: p.aspect,
-    words: p.voiceover?.words ?? [], joins: [], colors: p.colors, fonts: creativeFonts(), safeArea: safeAreaPx(p.aspect, p.width, p.height), mode: "motion", assets: p.assets,
-    ...(p.table ? { table: p.table } : {}), ...(p.opini ? { opini: p.opini } : {}),
+    words: p.voiceover?.words ?? [], joins: [], colors: p.colors, fonts: creativeFonts(), safeArea: safeAreaPx(p.aspect, p.width, p.height, p.safeArea !== false), mode: "motion", assets: p.assets,
+    ...(p.table ? { table: p.table } : {}), ...(p.opini ? { opini: p.opini } : {}), ...(p.profAi ? { profAi: p.profAi } : {}),
   };
   return (
     <AbsoluteFill style={{ backgroundColor: p.background, overflow: "hidden" }}>
@@ -22,7 +22,7 @@ export const Motion = (p: MotionProps & { onCreativeError?: CreativeErrorHandler
       <CreativeFontLoader fonts={p.fonts} onError={p.onCreativeError} />
       <CreativeOverlay code={p.overlay} data={data} onError={p.onCreativeError} />
       {/* Subtitle otomatis voice over: layer terpisah di atas animasi (aturan 4) */}
-      {p.captions && <Subtitles pages={p.captions.pages} style={p.captions.style} aspect={p.aspect} anim={p.captions.anim} textScale={p.captions.textScale} textBottom={p.captions.textBottom} textFx={p.captions.textFx} />}
+      {p.captions && <Subtitles pages={p.captions.pages} style={p.captions.style} aspect={p.aspect} anim={p.captions.anim} textScale={p.captions.textScale} textBottom={p.captions.textBottom} textFx={p.captions.textFx} safe={p.captions.safeArea !== false} />}
     </AbsoluteFill>
   );
 };

@@ -13,6 +13,18 @@ assert.equal(normalizeMotion(null), undefined);
 assert.equal(normalizeMotion({ durationS: 8, musicId: "bukan-uuid" })!.musicId, undefined);
 assert.equal("motion" in normalizeStyle({}), false, "project video lama tidak berubah");
 assert.equal(normalizeStyle({ motion: { durationS: 6 } } as never).motion!.durationS, 6);
+// volume voice over/musik: dijepit, bukan angka = bawaan, dan dipakai props
+const vol = normalizeMotion({ durationS: 8, voVolume: 9, musicVolume: 0.333 })!;
+assert.equal(vol.voVolume, MOTION_GFX.audioVolume.max);
+assert.equal(vol.musicVolume, 0.33);
+assert.ok(!("voVolume" in normalizeMotion({ durationS: 8, voVolume: "keras" })!), "bukan angka = bawaan");
+{
+  const mid = "0f8fad5b-d9cb-469f-a165-70867728950e";
+  const p = buildMotionProps({ aspect: "9:16", settings: { durationS: 8, musicId: mid, musicVolume: 0.4, voVolume: 1.5 }, colors: { primary: "#fff", accent: "#000", text: "#fff" } as never,
+    materials: [{ id: mid, label: "m.mp3", mime: "audio/mpeg" }], srcFor: (id) => `/f/${id}`, voiceover: { durationS: 5, words: [{ text: "halo", start: 0, end: 0.5 }] as never } });
+  assert.equal(p.music!.volume, 0.4);
+  assert.equal(p.voiceover!.volume, 1.5);
+}
 
 // ---- data/angka: CSV kecil dengan koma, titik koma, atau tab; angka dikenali, persen dibuang tandanya
 assert.deepEqual(parseTable("Bulan,Penjualan\nJan,120\nFeb,180"), { columns: ["Bulan", "Penjualan"], rows: [["Jan", 120], ["Feb", 180]] });

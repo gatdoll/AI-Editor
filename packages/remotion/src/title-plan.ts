@@ -1,4 +1,4 @@
-import { MOTION, SAFE_AREA, SUBTITLE, TITLE_ANIMS, type AspectId } from "@app/config";
+import { MOTION, SUBTITLE, safeAreaOf, TITLE_ANIMS, type AspectId } from "@app/config";
 import type { CaptionPage } from "./captions.ts";
 
 export type MotionTitle = { text: string; subtext?: string; startS: number; endS: number; animation: (typeof TITLE_ANIMS)[number]; position: "atas" | "tengah" };
@@ -48,7 +48,7 @@ export function titlePage(title: MotionTitle): CaptionPage {
  * Jarak dasar judul dari bawah (pecahan tinggi). Judul "atas" setinggi maks MOTION.title.maxHeight tidak boleh masuk safe area
  * atas (9:16: nama akun / tab Reels), jadi dasarnya diturunkan bila perlu.
  */
-export function titleBottom(position: string | undefined, aspect: AspectId): number {
+export function titleBottom(position: string | undefined, aspect: AspectId, follow = true): number {
   if (position !== "atas") return MOTION.title.centerBottom;
-  return Math.min(MOTION.title.topBottom, 1 - SAFE_AREA[aspect].top - MOTION.title.maxHeight);
+  return Math.min(MOTION.title.topBottom, 1 - safeAreaOf(aspect, follow).top - MOTION.title.maxHeight);
 }

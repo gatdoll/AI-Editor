@@ -61,6 +61,8 @@ export type EditedProps = {
   textScale: number;
   /** Jarak subtitle dari bawah (pecahan tinggi layar); null = zona aman otomatis. */
   textBottom: number | null;
+  /** false = pengguna tidak mengikuti safe area platform (jarak tepi biasa). Tidak ada = ikuti. */
+  safeArea?: boolean;
   /** Animasi teks yang dipakai (sudah diputuskan: pilihan pengguna atau bawaan gaya). */
   captionAnim: CaptionAnim;
   /** Rencana kamera dari EDL (detik pada timeline hasil). */

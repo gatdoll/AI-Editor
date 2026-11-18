@@ -33,6 +33,8 @@
     "./glossary": "./src/glossary.ts",
     "./rig": "./src/rig.ts",
     "./rig-store": "./src/rig-store.ts",
+    "./prof-ai": "./src/prof-ai.ts",
+    "./prof-ai-store": "./src/prof-ai-store.ts",
     "./reference": "./src/reference.ts",
     "./reference-store": "./src/reference-store.ts",
     ".": "./src/index.ts",

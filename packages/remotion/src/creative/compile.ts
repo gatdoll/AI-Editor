@@ -6,6 +6,7 @@ import * as Remotion from "remotion";
 import { transform } from "sucrase";
 import { CREATIVE } from "@app/config";
 import { Character } from "./character.ts";
+import { ProfAI } from "./prof-ai.ts";
 
 export type ScopeIssue = { rule: string; detail: string };
 
@@ -41,7 +42,8 @@ const BANNED: Array<[RegExp, string]> = [
 export const REMOTION_API = ["AbsoluteFill", "Sequence", "Series", "Loop", "Freeze", "Easing", "interpolate", "interpolateColors", "spring", "measureSpring", "random", "useCurrentFrame", "useVideoConfig", "Img"] as const;
 const SAFE_REMOTION = Object.freeze(Object.fromEntries(REMOTION_API.map((k) => [k, (Remotion as Record<string, unknown>)[k]])));
 // Fase 25: `import { Character } from "character"` = karakter ber-rig (kode KITA, bukan kode AI)
-const MODULES: Record<string, unknown> = { react: React, remotion: SAFE_REMOTION, character: Object.freeze({ Character }) };
+// Fase 27: + ProfAI (karakter tetap project Animasi)
+const MODULES: Record<string, unknown> = { react: React, remotion: SAFE_REMOTION, character: Object.freeze({ Character, ProfAI }) };
 
 /** Nama aturan yang ditolak (untuk contract.md, agar AI tahu apa yang dilarang). */
 export const SCOPE_RULE_LABELS: readonly string[] = [...new Set(BANNED.map(([, label]) => label))];

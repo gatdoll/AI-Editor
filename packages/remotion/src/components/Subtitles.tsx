@@ -1,6 +1,6 @@
 import { KineticCaptions } from "./KineticCaptions.tsx";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { EASING, FX, SUBTITLE, type AspectId, type CaptionAnim, type StyleDef } from "@app/config";
+import { EASING, FX, SUBTITLE, subtitleZone, type AspectId, type CaptionAnim, type StyleDef } from "@app/config";
 import { activeTokenIndex, pageAt, pageLines, type CaptionPage } from "../captions.ts";
 import { clamp01, exitFactor, highlightLook, SweepBox } from "./text-fx.tsx";
 import type { TextFx } from "../build-props.ts";
@@ -14,17 +14,17 @@ import { fontFor } from "./fonts.ts";
  *  - pendek: 1-3 kata besar sekaligus, muncul dengan pop
  * Maksimal 2 baris, di zona aman bawah. Layer terpisah di atas kamera: tidak ikut bergerak (aturan 4).
  */
-export const Subtitles = ({ pages, style, aspect, anim, textScale, textBottom, textFx }: { pages: CaptionPage[]; style: StyleDef; aspect: AspectId; anim: CaptionAnim; textScale: number; textBottom: number | null; textFx?: TextFx }) => {
+export const Subtitles = ({ pages, style, aspect, anim, textScale, textBottom, textFx, safe: follow = true }: { pages: CaptionPage[]; style: StyleDef; aspect: AspectId; anim: CaptionAnim; textScale: number; textBottom: number | null; textFx?: TextFx; /** false = tidak mengikuti safe area platform */ safe?: boolean }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const t = frame / fps;
   const page = pageAt(pages, t);
-  if (anim === "kinetik" || anim === "blur-slide") return <KineticCaptions variant={anim} pages={pages} style={style} aspect={aspect} textScale={textScale} textBottom={textBottom} textFx={textFx}/>;
+  if (anim === "kinetik" || anim === "blur-slide") return <KineticCaptions variant={anim} pages={pages} style={style} aspect={aspect} textScale={textScale} textBottom={textBottom} textFx={textFx} safe={follow}/>;
   if (!page) return null;
 
   const lines = pageLines(page);
   const active = activeTokenIndex(page, t);
-  const safe = SUBTITLE.safeZone[aspect];
+  const safe = subtitleZone(aspect, follow);
   const scale = height / SUBTITLE.referenceHeight[aspect];
   const chunk = anim === "pendek";
   const fontSize = SUBTITLE.fontSizePx[aspect] * scale * (chunk ? SUBTITLE.chunkFontScale : 1) * textScale;

@@ -7,7 +7,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { VIDEO } from "@app/config";
 import { bundle } from "@remotion/bundler";
-import { renderMedia, renderStill, selectComposition } from "@remotion/renderer";
+import { renderMedia, renderStill, selectComposition, type makeCancelSignal } from "@remotion/renderer";
+
+type CancelSignal = ReturnType<typeof makeCancelSignal>["cancelSignal"];
 import type { EditedProps } from "../../../packages/remotion/src/edited-props.ts";
 import type { MotionProps } from "../../../packages/remotion/src/motion-props.ts";
 import { getSfx, listSfx, sfxPath } from "@app/shared/sfx-library";
@@ -91,6 +93,8 @@ export type RenderArgs = {
   /** Props komposisi tanpa `src` (server file lokal memberi URL-nya). */
   props: Omit<EditedProps, "src">;
   onProgress: (fraction: number) => void;
+  /** Pembatalan oleh pengguna (render-cancel.ts). */
+  cancelSignal?: CancelSignal;
   /** Log konsol browser renderer (untuk menangkap error kode kreatif per frame). */
   onBrowserLog?: (text: string) => void;
   /** Fase 11: audio hasil reduksi noise (menggantikan audio video). */
@@ -188,6 +192,7 @@ export async function renderEdited(a: RenderArgs): Promise<{ durationInFrames: n
       outputLocation: a.outFile,
       ...tuning(a.retry),
       chromiumOptions: { enableMultiProcessOnLinux: true },
+      cancelSignal: a.cancelSignal,
       onProgress: ({ progress }) => a.onProgress(progress),
       onBrowserLog: a.onBrowserLog ? (l) => a.onBrowserLog!(l.text) : undefined,
     });
@@ -243,7 +248,7 @@ export async function renderMotionStill(a: { materials: MotionFile[]; props: (sr
   });
 }
 
-export async function renderMotion(a: { materials: MotionFile[]; props: (srcFor: (id: string) => string) => MotionProps; outFile: string; onProgress: (f: number) => void; onBrowserLog?: (text: string) => void }): Promise<{ durationInFrames: number }> {
+export async function renderMotion(a: { materials: MotionFile[]; props: (srcFor: (id: string) => string) => MotionProps; outFile: string; onProgress: (f: number) => void; onBrowserLog?: (text: string) => void; cancelSignal?: CancelSignal }): Promise<{ durationInFrames: number }> {
   return withMotionServer(a.materials, async (srcFor) => {
     const serveUrl = await getBundle();
     const inputProps = a.props(srcFor);
@@ -252,6 +257,7 @@ export async function renderMotion(a: { materials: MotionFile[]; props: (srcFor:
       composition, serveUrl, inputProps, codec: "h264", crf: VIDEO.crf, audioCodec: "aac", outputLocation: a.outFile,
       ...tuning(),
       chromiumOptions: { enableMultiProcessOnLinux: true },
+      cancelSignal: a.cancelSignal,
       onProgress: ({ progress }) => a.onProgress(progress),
       onBrowserLog: a.onBrowserLog ? (l) => a.onBrowserLog!(l.text) : undefined,
     });

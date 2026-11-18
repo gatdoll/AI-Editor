@@ -7,7 +7,9 @@ import s from "./editor.module.css";
 
 export type Waveform = { perSecond: number; peaks: Uint8Array };
 
-export function WaveformLane({ scrollRef, pps, duration, frameSegs, fps, wave, height, onClick }: {
+export function WaveformLane({ scrollRef, pps, duration, frameSegs, fps, wave, height, onClick, gain = 1 }: {
+  /** Volume audio sumber (0 = bisu): tinggi gelombang ikut berubah agar perubahan volume terlihat. */
+  gain?: number;
   scrollRef: React.RefObject<HTMLDivElement | null>;
   pps: number;
   /** Durasi hasil (detik). */
@@ -47,14 +49,14 @@ export function WaveformLane({ scrollRef, pps, duration, frameSegs, fps, wave, h
       const srcB = Math.min(seg ? seg.srcTo / fps : Infinity, srcA + 1 / pps);
       let max = 0;
       for (let i = Math.floor(srcA * rate), end = Math.max(i + 1, Math.ceil(srcB * rate)); i < end && i < peaks.length; i++) if (peaks[i] > max) max = peaks[i];
-      const bar = Math.max(1, (max / 255) * amp);
+      const bar = Math.max(gain > 0 ? 1 : 0.5, Math.min(amp, (max / 255) * amp * gain));
       g.fillRect(x, mid - bar, 1, bar * 2);
     }
     // garis tengah tipis agar bagian hening tetap terbaca sebagai "ada audio"
     g.globalAlpha = 0.35;
     g.fillRect(0, mid - 0.5, Math.min(w, duration * pps - sc.scrollLeft), 1);
     g.globalAlpha = 1;
-  }, [scrollRef, pps, duration, frameSegs, fps, wave, height]);
+  }, [scrollRef, pps, duration, frameSegs, fps, wave, height, gain]);
 
   useEffect(() => {
     draw();

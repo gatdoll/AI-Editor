@@ -32,6 +32,8 @@ export const VIDEO = {
   reelGapSec: 1,
   /** Fase 16: batas jumlah video per project. */
   maxVideos: 50,
+  /** Seberapa sering worker memeriksa apakah render dibatalkan pengguna (ms). */
+  renderCancelPollMs: 1500,
 } as const;
 
 // ------------------------------------------------------- gelombang audio di timeline
@@ -96,6 +98,54 @@ export const CHARACTER = {
   legLift: 0.035,
   jumpS: 0.75,
   jumpHeight: 0.22,
+} as const;
+
+/** Fase 27: gerak Prof. AI (rig tulang + mesh, karakter tetap project Animasi). Sudut dalam derajat; panjang dalam satuan tinggi karakter. */
+export const PROF_AI = {
+  /** Lengan diam: dari T-pose diturunkan sejauh ini (hampir lurus ke bawah); siku sedikit menekuk. */
+  armRest: 78,
+  elbowRest: 8,
+  /** Letak siku: bagian panjang lengan dari bahu (sisanya lengan bawah + tangan). */
+  elbowAt: 0.47,
+  armSway: 2,
+  armSwayPeriodS: 3.6,
+  breathe: 0.01,
+  breathePeriodS: 3.2,
+  headSway: 1.4,
+  headSwayPeriodS: 4.4,
+  /** Pergantian ke pose aksi (detik) agar tidak patah. */
+  blendS: 0.25,
+  /** Gestur explain/talk: lengan bawah naik bergantian. */
+  explainPeriodS: 1.5,
+  /** Lambai: lengan atas mendatar, lengan bawah tegak dan bergoyang di siku. */
+  waveForearm: 80,
+  waveSwing: 22,
+  wavePeriodS: 0.5,
+  /** Berpikir: tangan menggaruk sisi kepala (lengan chibi terlalu pendek untuk menyentuh dagu). */
+  thinkElbow: -104,
+  jumpS: 0.8,
+  jumpHeight: 0.22,
+  /** Jalan (tampak 3/4): langkah per detik, ayun paha, tekuk lutut saat kaki diayun, ayun lengan, pantulan, condong. */
+  walk: { stepsPerS: 2.2, hipSwing: 24, kneeBend: 46, armSwing: 20, bob: 0.022, lean: 3 },
+  /** Ganti tampak: squash horizontal. */
+  turnS: 0.28,
+  /** Pergantian bentuk mulut paling cepat (detik) agar tidak berkedip-kedip. */
+  mouthMinS: 0.07,
+  shadowOpacity: 0.18,
+  /**
+   * Avatar mesh tampak depan (mesh-avatar-studio). Sudut kepala dalam derajat (batas runtime ±30), lengan/siku 0..1.
+   * headDrift = gerak kepala diam; mouthSmooth = pengejaran bentuk mulut per frame (0..1); seed = angka acak runtime (kedip, lirik).
+   */
+  mesh: {
+    headDrift: { x: 5, y: 2.5, z: 2.5, periodS: 5.3 },
+    talkNod: 3.5,
+    explain: { head: 9, body: 3, periodS: 1.5 },
+    nod: 13,
+    shake: 15,
+    think: { roll: 9, turn: -8, gazeX: 0.6, gazeY: 0.55 },
+    mouthSmooth: 0.55,
+    seed: 20261117,
+  },
 } as const;
 
 export const TALENT = {
@@ -193,6 +243,17 @@ export const SAFE_AREA = {
   "9:16": { top: 0.12, bottom: 0.24, left: 0.06, right: 0.14 },
   "4:5": { top: 0.06, bottom: 0.13, left: 0.07, right: 0.07 },
 } as const satisfies Record<AspectId, { top: number; bottom: number; left: number; right: number }>;
+
+/**
+ * Centang "Ikuti safe area" dimatikan pengguna (param `bingkai.safeArea` = false): tidak ada ruang untuk UI platform,
+ * hanya jarak tepi biasa agar teks tidak menempel ke tepi frame. Berlaku sama untuk semua rasio.
+ */
+export const SAFE_AREA_OFF = { top: 0.05, bottom: 0.07, left: 0.05, right: 0.05 } as const;
+
+/** Safe area yang dipakai: SAFE_AREA rasio ini, atau jarak tepi biasa bila pengguna tidak mengikuti safe area. */
+export function safeAreaOf(aspect: AspectId, follow = true): { top: number; bottom: number; left: number; right: number } {
+  return follow ? (SAFE_AREA[aspect] ?? SAFE_AREA["16:9"]) : SAFE_AREA_OFF;
+}
 
 // ----------------------------------------------------------------- kamera
 export const CAMERA = {
@@ -310,6 +371,8 @@ export const SUBTITLE = {
     // Feed tidak menutupi bagian bawah video setebal Reels; tetap beri ruang untuk crop grid profil dan tombol suara
     "4:5": { bottom: SAFE_AREA["4:5"].bottom, side: 0.07, right: 0.07 },
   },
+  // Zona subtitle bila pengguna tidak mengikuti safe area: simetris, hanya jarak tepi biasa (SAFE_AREA_OFF)
+  safeZoneOff: { bottom: SAFE_AREA_OFF.bottom, side: 0.07, right: 0.07 },
   // Kata aktif sedikit terangkat (em). Tidak membesar: pembesaran menimpa spasi di samping kata.
   activeLiftEm: 0.07,
   // Ukuran font dan garis tepi dirancang untuk tinggi frame ini, lalu diskalakan ke tinggi output
@@ -318,6 +381,11 @@ export const SUBTITLE = {
   shadowOffsetEm: 0.05,
   shadowBlurEm: 0.12,
 } as const;
+
+/** Zona subtitle/judul yang dipakai (lihat safeAreaOf). */
+export function subtitleZone(aspect: AspectId, follow = true): { bottom: number; side: number; right: number } {
+  return follow ? SUBTITLE.safeZone[aspect] : SUBTITLE.safeZoneOff;
+}
 
 // ------------------------------------------------------------------- gaya
 // Maksimal 3 warna utama: teks, aksen, dan warna gelap untuk bayangan/overlay.
@@ -639,6 +707,8 @@ export const MOTION_GFX = {
   /** Data/angka (CSV kecil) yang dianimasikan menjadi grafik. */
   table: { maxRows: 50, maxCols: 8, maxChars: 4000 },
   musicVolume: 1,
+  /** Rentang slider volume voice over dan musik di Pengaturan (pengali; 1 = asli, di atas 1 = dikeraskan). */
+  audioVolume: { min: 0, max: 2, step: 0.05 },
   /**
    * Voice over dari naskah pengguna dengan suara rekamannya sendiri (Fase 17): Codex CLI menyiapkan naskah baca, VoxCPM2 (lokal)
    * meniru suara rekaman, Whisper mencatat waktu tiap kata untuk sinkronisasi animasi.

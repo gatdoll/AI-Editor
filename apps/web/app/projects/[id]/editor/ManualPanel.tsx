@@ -15,9 +15,11 @@ function Control({ def, style, update }: { def: ParamDef; style: StyleChoice; up
   return <label className={s.manualControl} title={def.desc}><span>{def.label}</span>{def.kind === "number" ? <><input aria-label={def.label} type="range" min={def.min} max={def.max} step={def.step} value={Number(v ?? def.min ?? 0)} onChange={(e) => set(Number(e.target.value))}/><output>{Number(Number(v ?? def.min ?? 0).toFixed(2))}{def.unit}</output></> : def.kind === "boolean" ? <input type="checkbox" checked={v === true} onChange={(e) => set(e.target.checked)}/> : def.kind === "color" ? <input type="color" value={String(v ?? "#ffffff")} onChange={(e) => set(e.target.value)}/> : <select value={String(v)} onChange={(e) => set(e.target.value)}>{def.options?.map((o) => <option key={o}>{o}</option>)}</select>}</label>;
 }
 
-export function ManualPanel({ style, update, duration, fps, clip, clipLimits, selectedTitle, onSelectTitle, onTrim, onDelete, onSplit, getTime, onSeek, disabled, onMessage, sfx, sfxFocus = 0 }: {
+export function ManualPanel({ style, update, duration, fps, clip, clipLimits, selectedTitle, onSelectTitle, onTrim, onDelete, onSplit, getTime, onSeek, disabled, onMessage, sfx, sfxFocus = 0, audioFocus = 0 }: {
   /** Fase 14: isi bagian SFX (panel lengkap), dan pemicu untuk membukanya (berubah = pindah ke bagian SFX). */
   sfx?: ReactNode; sfxFocus?: number;
+  /** Berubah = pindah ke bagian Audio (klik label track Audio di timeline). */
+  audioFocus?: number;
   style: StyleChoice; update: (p: Partial<StyleChoice>, group?: string) => void; duration: number; fps: number;
   clip: Interval | null;
   /** Seberapa jauh In/Out boleh keluar dari klip (memulihkan bagian terpotong), waktu mentah. */
@@ -30,6 +32,7 @@ export function ManualPanel({ style, update, duration, fps, clip, clipLimits, se
   useEffect(() => { if (selectedTitle !== null) setSection("Teks"); }, [selectedTitle]);
   useEffect(() => { if (clip) setSection("Klip"); }, [clip?.start]);
   useEffect(() => { if (sfxFocus) setSection("SFX"); }, [sfxFocus]);
+  useEffect(() => { if (audioFocus) setSection("Audio"); }, [audioFocus]);
   const manual = normalizeManual(style.manual), titles = style.titles ?? [];
   const title = selectedTitle == null ? null : titles[selectedTitle];
   const group = section === "Gambar" ? ["Video", "Efek"] : section === "Audio" ? ["Audio"] : section === "Kamera" ? ["Kamera", "Motion"] : ["Teks", "Warna"];

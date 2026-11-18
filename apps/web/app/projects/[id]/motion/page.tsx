@@ -21,7 +21,7 @@ import { voiceoverUploadExt, type VoiceoverInfo, type VoiceoverSegment, type Voi
 import { VoiceoverPanel, type VoiceoverJob, type VoiceoverMode } from "./VoiceoverPanel";
 import { AssetPanel, ProviderPick, readyProvider } from "./AssetPanel";
 import type { Provider } from "@app/shared";
-import { discardEmptySave, downloadUrl, isAbort, pickSaveFile, renderFailedMessage, saveUrlToHandle } from "../../../../lib/save-file";
+import { cancelRender, discardEmptySave, downloadUrl, isAbort, pickSaveFile, renderFailedMessage, saveUrlToHandle } from "../../../../lib/save-file";
 import { Icon } from "../../../components/Icon";
 import s from "./motion.module.css";
 
@@ -318,7 +318,7 @@ export default function MotionPage({ params }: { params: Promise<{ id: string }>
     srcFor: (mid) => (mid === VOICEOVER_ID ? `/api/projects/${id}/voiceover/file?v=${voInfo?.jobId}` : mid.startsWith("font:") ? creative.code?.fonts?.find((f) => `font:${f.id}` === mid)?.src ?? "" : `/api/assets/${mid}/file`), overlay: creative.code?.overlay,
     ...(creative.code?.fonts?.length ? { fonts: creative.code.fonts } : {}),
     sfx: { style, creativeSfx: creative.code?.sfx, lengthFor: (sid) => sfxLib.items.find((x) => x.id === sid)?.durationS },
-    voiceover: voInfo, captions: creative.code?.replacesCaptions ? undefined : motionCaptions(style, voInfo?.words),
+    voiceover: voInfo, captions: creative.code?.replacesCaptions ? undefined : motionCaptions(style, voInfo?.words), safeArea: resolveStyle(style).safeArea,
   }), [style, materials, creative.code, sfxLib.items, voInfo, id]);
   // ---- SFX (Fase 14): di motion, waktu sumber = waktu hasil (tidak ada cut)
   const sfxCues = style?.sfx?.cues ?? [];
@@ -358,7 +358,7 @@ export default function MotionPage({ params }: { params: Promise<{ id: string }>
   useEffect(() => {
     const p = pending.current, rj = exportInfo?.renderJob, last = exportInfo?.outputs[0];
     if (!p || !rj) return;
-    if (rj.status === "failed" || rj.status === "cancelled") { pending.current = null; setSaveState(null); void renderFailedMessage(p.handle, rj.error).then(say); return; }
+    if (rj.status === "failed" || rj.status === "cancelled") { pending.current = null; setSaveState(null); void renderFailedMessage(p.handle, rj.error, rj.status === "cancelled").then(say); return; }
     if (rj.status === "done" && last && new Date(last.created_at).getTime() >= p.since) { pending.current = null; void saveOutput(last, p.handle); }
   }, [exportInfo, saveOutput, say]);
   async function exportNow() {
@@ -397,6 +397,15 @@ export default function MotionPage({ params }: { params: Promise<{ id: string }>
         <label className={s.inline}><input type="checkbox" checked={motionSubtitleOn(motion)} onChange={(e) => setMotion({ subtitle: e.target.checked })} /> subtitle otomatis dari voice over</label>
         {motionSubtitleOn(motion) && <div className={s.seg}>{(Object.keys(CAPTION_ANIMS) as CaptionAnim[]).map((a) => <button key={a} aria-pressed={resolveStyle(style).captionAnim === a} onClick={() => updateStyle({ params: { ...style.params, "teks.animasi": a } })}>{CAPTION_ANIMS[a].label}</button>)}</div>}
         <span className={s.matMeta}>Teks mengikuti waktu tiap kata dan ikut ter-ekspor. Isi naskah {started ? "di tab 🎙 Voice over" : "di atas"} agar ejaan nama dan istilah tepat.</span>
+      </div>}
+      {(voInfo || motion.musicId) && <div className={s.field}><span>Audio</span>
+        {voInfo && <label className={s.inline} title="Volume voice over; 100% = asli">Voice over
+          <input type="range" min={MOTION_GFX.audioVolume.min} max={MOTION_GFX.audioVolume.max} step={MOTION_GFX.audioVolume.step} value={motion.voVolume ?? MOTION_GFX.voiceover.volume} onChange={(e) => setMotion({ voVolume: Number(e.target.value) })} aria-label="Volume voice over" />
+          <output>{Math.round((motion.voVolume ?? MOTION_GFX.voiceover.volume) * 100)}%</output></label>}
+        {motion.musicId && <label className={s.inline} title={voInfo ? "Volume musik; saat voice over bicara musik tetap diturunkan otomatis" : "Volume musik; 100% = asli"}>Musik
+          <input type="range" min={MOTION_GFX.audioVolume.min} max={MOTION_GFX.audioVolume.max} step={MOTION_GFX.audioVolume.step} value={motion.musicVolume ?? MOTION_GFX.musicVolume} onChange={(e) => setMotion({ musicVolume: Number(e.target.value) })} aria-label="Volume musik" />
+          <output>{Math.round((motion.musicVolume ?? MOTION_GFX.musicVolume) * 100)}%</output></label>}
+        <span className={s.matMeta}>Langsung berlaku di pratinjau dan ekspor, tanpa membuat versi baru. SFX diatur di tab ♪ SFX.</span>
       </div>}
       <div className={s.field}><span>Bahan</span>
         <div className={s.materials}>
@@ -480,6 +489,7 @@ export default function MotionPage({ params }: { params: Promise<{ id: string }>
           title={renderBusy ? "Render sedang berjalan" : activeId ? "Pilih lokasi file, lalu render MP4" : "Belum ada versi"}>
           <Icon name="export" size={15}/>{exportInfo?.renderJob?.status === "queued" ? "Menunggu render…" : renderBusy ? `Merender… ${Math.round((exportInfo?.renderJob?.progress ?? 0) * 100)}%` : saveState?.startsWith("Menyimpan") ? "Menyimpan…" : "Ekspor MP4"}
         </button>
+        {renderBusy && <button onClick={() => void cancelRender(id).then((m) => { say(m); void loadExport(); })} title="Hentikan render ini. Versi motion dan hasil ekspor sebelumnya tidak berubah.">Batalkan render</button>}
       </header>
       <section className={s.left}>
         <CreativePanel key={panelKey} rig={{ images: materials.filter((m) => String(m.mime ?? "").startsWith("image/") && m.role !== "logo" && m.role !== "design").length, rigged: materials.filter((m) => (m as { rig?: unknown }).rig && m.role !== "logo").length }} materialsVersion={materials.map((m) => `${m.id}:${m.role ?? ""}`).join(",")} onMaterialsChanged={() => void loadMaterials()} projectId={id} aspect={style.aspect} ready analyzers={analyzers} activeId={activeId} styleLocked={false}
@@ -503,7 +513,7 @@ export default function MotionPage({ params }: { params: Promise<{ id: string }>
               : opini && assetsInfo && (!assetsInfo.hasState || assetsInfo.pending > 0) ? <>Tahap 3/3 · Pilih aset di tab 🖼 Aset{assetsInfo.pending ? ` (${assetsInfo.pending} belum diputuskan)` : ""}, lalu klik Buat motion.</>
               : <>{animasi ? "Animasi" : "Versi"} pertama sedang dibuat… progresnya terlihat di panel kiri, hasilnya muncul di sini.</>}</div>}
         </div>
-        <div className={s.info}><label style={{ marginRight: 10, cursor: "pointer" }} title="Bagian yang tertutup tombol dan caption Reels/TikTok (tidak ikut terekspor)"><input type="checkbox" checked={safeGuide} onChange={(e) => setSafeGuide(e.target.checked)} /> Safe area</label>{style.aspect} · {out.width}×{out.height} · {fmt(props ? props.durationInFrames / props.fps : 0)}{voInfo ? " · dengan voice over" : ""}{motion.musicId ? " · dengan musik" : ""}</div>
+        <div className={s.info}><label style={{ marginRight: 10, cursor: "pointer" }} title="Bagian yang tertutup tombol dan caption Reels/TikTok (tidak ikut terekspor)"><input type="checkbox" checked={safeGuide} onChange={(e) => setSafeGuide(e.target.checked)} /> Garis safe area</label><label style={{ marginRight: 10, cursor: "pointer" }} title="Dicentang: subtitle, judul, dan animasi AI menghindari bagian yang tertutup UI Reels/TikTok. Tidak dicentang: hanya jarak tepi biasa (berlaku untuk pratinjau, render, dan versi AI berikutnya)"><input type="checkbox" checked={resolveStyle(style).safeArea} onChange={(e) => { const { ["bingkai.safeArea"]: _drop, ...rest } = style.params; updateStyle({ params: e.target.checked ? rest : { ...style.params, "bingkai.safeArea": false } }); }} /> Ikuti safe area</label>{style.aspect} · {out.width}×{out.height} · {fmt(props ? props.durationInFrames / props.fps : 0)}{voInfo ? " · dengan voice over" : ""}{motion.musicId ? " · dengan musik" : ""}</div>
         {(creative.error || creativeErrors.length > 0) && <div className={s.warn}><b>Kode motion error di sebagian frame.</b> {creative.error ?? creativeErrors[0]} Minta revisi “perbaiki error” bila perlu.</div>}
         {saveState && <div className={s.info}>{saveState}</div>}
         {exportInfo?.renderJob?.status === "failed" && <div className={s.warn}>Render gagal: {exportInfo.renderJob.error}</div>}

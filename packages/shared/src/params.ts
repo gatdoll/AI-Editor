@@ -83,6 +83,7 @@ export const PARAMS: ParamDef[] = [
   { id: "kamera.gerakanMin", group: "Kamera", label: "Gerakan terpendek", desc: "Durasi gerakan kamera terpendek (detik).", kind: "number", min: 0.8, max: 10, step: 0.1, unit: "dtk", base: (s) => ENERGY[STYLES[s].energy].minMoveSec },
   { id: "kamera.gerakanMaks", group: "Kamera", label: "Gerakan terpanjang", desc: "Durasi gerakan kamera terpanjang (detik).", kind: "number", min: 1.5, max: 20, step: 0.5, unit: "dtk", base: (s) => ENERGY[STYLES[s].energy].maxMoveSec },
   // -------------------------------------------------------------- bingkai
+  { id: "bingkai.safeArea", group: "Bingkai", label: "Ikuti safe area", desc: "true = subtitle, judul, dan animasi AI menghindari bagian yang tertutup UI Reels/TikTok/Instagram (nama akun, caption, kolom tombol like). false = tidak mengikuti safe area: hanya jarak tepi biasa, teks boleh lebih ke bawah/samping.", kind: "boolean", base: () => true },
   { id: "bingkai.fokusX", group: "Bingkai", label: "Posisi potong", desc: "Saat video dipotong ke rasio lebih sempit (mis. 9:16): 0 = kiri, 0.5 = tengah, 1 = kanan.", kind: "number", min: 0, max: 1, step: 0.01, base: () => 0.5 },
 ];
 

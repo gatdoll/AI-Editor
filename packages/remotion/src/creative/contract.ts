@@ -1,8 +1,9 @@
 // Kontrak Mode Kreatif (Fase 9): data yang diterima kode buatan AI, dan bentuk kodenya.
 // Murni (tanpa JSX), dipakai komposisi, worker, dan dokumen kontrak untuk AI.
-import { SAFE_AREA, type AspectId } from "@app/config";
+import { safeAreaOf, type AspectId } from "@app/config";
 import type { AssetCue } from "../../../shared/src/opinion.ts";
 import type { CharacterRig } from "../../../shared/src/rig.ts";
+import type { ProfAiData } from "../../../shared/src/prof-ai.ts";
 
 /** Satu kata pada timeline HASIL (sesudah cut), detik. hl = kata kunci yang ditandai pengguna/otomatis. */
 export type CreativeWord = { text: string; start: number; end: number; hl?: "aksen" | "slam" };
@@ -38,6 +39,8 @@ export type CreativeData = {
    * Posisi wajah terbesar dalam PIKSEL kanvas, satu sampel tiap ±0,2 dtk timeline hasil (perkiraan tanpa gerak kamera).
    */
   faces?: CreativeFace[];
+  /** Fase 27: Prof. AI (project Animasi, centang "Pakai Prof. AI"). Tampilkan HANYA dengan <ProfAI data={data} /> dari modul "character". */
+  profAi?: ProfAiData;
 };
 
 /** Kotak wajah pada detik `t` timeline hasil, piksel kanvas. */
@@ -45,9 +48,12 @@ export type CreativeFace = { t: number; x: number; y: number; w: number; h: numb
 
 export type SafeArea = { top: number; bottom: number; left: number; right: number };
 
-/** Safe area rasio ini dalam piksel (dibulatkan). Dipakai semua tempat yang menyusun CreativeData. */
-export function safeAreaPx(aspect: AspectId, width: number, height: number): SafeArea {
-  const a = SAFE_AREA[aspect] ?? SAFE_AREA["16:9"];
+/**
+ * Safe area rasio ini dalam piksel (dibulatkan). Dipakai semua tempat yang menyusun CreativeData.
+ * follow = false (pengguna mematikan "Ikuti safe area"): jarak tepi biasa saja (SAFE_AREA_OFF).
+ */
+export function safeAreaPx(aspect: AspectId, width: number, height: number, follow = true): SafeArea {
+  const a = safeAreaOf(aspect, follow);
   return { top: Math.round(a.top * height), bottom: Math.round(a.bottom * height), left: Math.round(a.left * width), right: Math.round(a.right * width) };
 }
 

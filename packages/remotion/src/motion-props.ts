@@ -28,6 +28,17 @@ export type MotionSettings = {
   kredit?: boolean;
   /** Subtitle otomatis dari waktu kata voice over. Tidak diisi = bawaan (`motionSubtitleOn`). */
   subtitle?: boolean;
+  /** Volume voice over dan musik (pengali, `MOTION_GFX.audioVolume`). Tidak diisi = bawaan config. */
+  voVolume?: number;
+  musicVolume?: number;
+};
+
+/** Volume yang sah (dijepit ke rentang slider); bukan angka = undefined (pakai bawaan). */
+const motionVolume = (raw: unknown): number | undefined => {
+  const n = typeof raw === "number" ? raw : NaN;
+  if (!Number.isFinite(n)) return undefined;
+  const { min, max } = MOTION_GFX.audioVolume;
+  return Math.round(Math.min(max, Math.max(min, n)) * 100) / 100;
 };
 
 /** Subtitle otomatis aktif? Bawaan: nyala untuk project Animasi dan Opinion Motion, mati untuk motion (motion lama tidak berubah). */
@@ -46,6 +57,8 @@ export function normalizeMotion(raw: unknown): MotionSettings | undefined {
     ...(r.opini === true ? { opini: true as const } : {}),
     ...(typeof r.kredit === "boolean" ? { kredit: r.kredit } : {}),
     ...(typeof r.subtitle === "boolean" ? { subtitle: r.subtitle } : {}),
+    ...(motionVolume(r.voVolume) !== undefined ? { voVolume: motionVolume(r.voVolume) } : {}),
+    ...(motionVolume(r.musicVolume) !== undefined ? { musicVolume: motionVolume(r.musicVolume) } : {}),
     ...(typeof r.table === "string" && r.table.trim() ? { table: r.table.slice(0, MOTION_GFX.table.maxChars) } : {}),
   };
 }
@@ -124,9 +137,13 @@ export type MotionProps = {
   opini?: CreativeData["opini"];
   /** Fase 24: font tambahan versi aktif (src dari `srcFor("font:<id>")`). */
   fonts?: CreativeFontFile[];
+  /** false = pengguna tidak mengikuti safe area platform (param bingkai.safeArea). Tidak ada = ikuti. */
+  safeArea?: boolean;
+  /** Fase 27: Prof. AI (gambar + rig) untuk <ProfAI>. */
+  profAi?: CreativeData["profAi"];
 };
 
-export type MotionCaptions = { pages: CaptionPage[]; style: StyleDef; anim: CaptionAnim; textScale: number; textBottom: number | null; textFx: TextFx };
+export type MotionCaptions = { pages: CaptionPage[]; style: StyleDef; anim: CaptionAnim; textScale: number; textBottom: number | null; textFx: TextFx; safeArea?: boolean };
 
 const isImage = (m: MaterialInfo) => m.mime.startsWith("image/");
 const isAudio = (m: MaterialInfo) => m.mime.startsWith("audio/");
@@ -143,7 +160,9 @@ export function buildMotionProps(a: { aspect: AspectId; settings: MotionSettings
   /** Subtitle otomatis; hanya dipakai bila ada voice over. */
   captions?: MotionCaptions;
   /** Fase 24: font tambahan versi aktif. URL = srcFor(`font:${id}`). */
-  fonts?: Array<{ id: string; family: string; weight: number }> }): MotionProps {
+  fonts?: Array<{ id: string; family: string; weight: number }>;
+  /** false = tidak mengikuti safe area (resolveStyle(style).safeArea). */
+  safeArea?: boolean }): MotionProps {
   const s = a.settings ?? { durationS: MOTION_GFX.durationS.default };
   const fps = a.fps ?? VIDEO.fps;
   const out = ASPECTS[a.aspect];
@@ -163,11 +182,12 @@ export function buildMotionProps(a: { aspect: AspectId; settings: MotionSettings
     colors: a.colors,
     assets: materialAssets(a.materials, a.srcFor, a.fileFor),
     ...(() => { const t = parseTable(s.table); return t ? { table: t } : {}; })(),
-    ...(music ? { music: { src: a.srcFor(music.id), volume: MOTION_GFX.musicVolume, ...(a.voiceover ? { duck: { spans: speechSpans(a.voiceover.words), level: VO.musicDuck, rampS: VO.duckRampS } } : {}) } } : {}),
-    ...(a.voiceover ? { voiceover: { src: a.srcFor(VOICEOVER_ID), volume: VO.volume, words: a.voiceover.words } } : {}),
+    ...(music ? { music: { src: a.srcFor(music.id), volume: s.musicVolume ?? MOTION_GFX.musicVolume, ...(a.voiceover ? { duck: { spans: speechSpans(a.voiceover.words), level: VO.musicDuck, rampS: VO.duckRampS } } : {}) } } : {}),
+    ...(a.voiceover ? { voiceover: { src: a.srcFor(VOICEOVER_ID), volume: s.voVolume ?? VO.volume, words: a.voiceover.words } } : {}),
     ...(a.overlay ? { overlay: a.overlay } : {}),
     ...(s.opini ? { opini: { kredit: s.kredit !== false, prefix: OPINION.credit.prefix } } : {}),
     ...(a.voiceover && a.captions?.pages.length ? { captions: a.captions } : {}),
+    ...(a.safeArea === false ? { safeArea: false } : {}),
     ...(a.fonts?.length ? { fonts: a.fonts.map((f) => ({ id: f.id, family: f.family, weight: f.weight, src: a.srcFor(`font:${f.id}`) })) } : {}),
     ...(() => {
       if (!a.sfx) return {};
@@ -204,6 +224,6 @@ export function motionCreativeData(p: MotionProps): CreativeData {
     width: p.width, height: p.height, fps: p.fps, durationInFrames: p.durationInFrames, aspect: p.aspect,
     words: p.voiceover?.words ?? [], joins: [], colors: p.colors,
     fonts: { jakarta: FONTS.jakarta.label, montserrat: FONTS.montserrat.label, inter: FONTS.inter.label },
-    safeArea: safeAreaPx(p.aspect, p.width, p.height), mode: "motion", assets: p.assets, ...(p.table ? { table: p.table } : {}), ...(p.opini ? { opini: p.opini } : {}),
+    safeArea: safeAreaPx(p.aspect, p.width, p.height, p.safeArea !== false), mode: "motion", assets: p.assets, ...(p.table ? { table: p.table } : {}), ...(p.opini ? { opini: p.opini } : {}),
   };
 }

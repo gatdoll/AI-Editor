@@ -28,3 +28,8 @@ Status: **kode selesai (12 Nov 2026).** Tes lulus, garis bantu dipotret di edito
 - Pemeriksaan kode AI hanya memastikan `data.safeArea` dipakai, bukan bahwa SETIAP elemen ada di dalamnya; cek dengan garis bantu.
 - Ukuran UI platform berubah-ubah per aplikasi/perangkat; angka di `SAFE_AREA` bisa disesuaikan di satu tempat.
 - Posisi subtitle manual (`textBottom`) yang diturunkan pengguna tetap dihormati walau masuk safe area.
+
+## Tambahan: centang "Ikuti safe area"
+- Param `bingkai.safeArea` (boolean, bawaan true) di registri; kunci dihapus saat dicentang lagi agar project lama tidak berubah.
+- Mati: subtitle, judul, `data.safeArea`, dan instruksi AI memakai `SAFE_AREA_OFF` (jarak tepi biasa, simetris); `safeAreaErrors` tidak mewajibkan `data.safeArea`. Garis bantu tetap menampilkan UI platform.
+- UI: editor (sebelah tombol ▣ Safe area) dan halaman motion. Versi AI yang sudah ada tidak berubah sampai dibuat versi baru.

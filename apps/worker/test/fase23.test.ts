@@ -1,7 +1,9 @@
 // Fase 23: safe area platform (9:16 Reels/TikTok: atas, bawah, kolom tombol kanan). Satu konstanta untuk subtitle, judul,
 // data.safeArea kode AI, dan garis bantu pratinjau. Jalankan: node apps/worker/test/fase23.test.ts
 import assert from "node:assert/strict";
-import { ASPECT_IDS, MOTION, SAFE_AREA, SUBTITLE } from "../../../config/index.ts";
+import { ASPECT_IDS, MOTION, SAFE_AREA, SAFE_AREA_OFF, SUBTITLE, subtitleZone } from "../../../config/index.ts";
+import { DEFAULT_STYLE, motionCaptions, normalizeStyle, resolveStyle } from "../../../packages/remotion/src/build-props.ts";
+import { PARAM_BY_ID } from "../../../packages/shared/src/params.ts";
 import { safeAreaPx } from "../../../packages/remotion/src/creative/contract.ts";
 import { buildContract } from "../../../packages/remotion/src/creative/contract-doc.ts";
 import { titleBottom } from "../../../packages/remotion/src/title-plan.ts";
@@ -41,5 +43,20 @@ assert.equal(safeAreaErrors({ overlay: "" }, "9:16").length, 0, "hanya gerak vid
 assert.match(subtitleZoneInstruction(), /safe area bawah/);
 assert.match(buildContract(), /## Safe area/);
 assert.match(buildContract(), /safeArea: \{ top: number; bottom: number; left: number; right: number \}/);
+
+// ---- centang "Ikuti safe area" (param bingkai.safeArea): mati = jarak tepi biasa di subtitle, judul, data AI, validasi
+assert.equal(PARAM_BY_ID["bingkai.safeArea"].kind, "boolean");
+assert.equal(resolveStyle(DEFAULT_STYLE).safeArea, true, "bawaan: ikuti safe area");
+const off = normalizeStyle({ ...DEFAULT_STYLE, aspect: "9:16", params: { "bingkai.safeArea": false } });
+assert.equal(resolveStyle(off).safeArea, false);
+assert.deepEqual(safeAreaPx("9:16", 1080, 1920, false), { top: Math.round(SAFE_AREA_OFF.top * 1920), bottom: Math.round(SAFE_AREA_OFF.bottom * 1920), left: Math.round(SAFE_AREA_OFF.left * 1080), right: Math.round(SAFE_AREA_OFF.right * 1080) });
+assert.ok(subtitleZone("9:16", false).bottom < subtitleZone("9:16").bottom, "subtitle turun bila safe area mati");
+assert.equal(subtitleZone("9:16", false).side, subtitleZone("9:16", false).right, "tanpa kolom tombol: simetris");
+assert.ok(titleBottom("atas", "9:16", false) >= titleBottom("atas", "9:16"), "judul atas boleh lebih tinggi");
+const offData = motionCreativeData(buildMotionProps({ aspect: "9:16", settings: { durationS: 4 }, colors: { text: "#fff", accent: "#f00", dark: "#000" }, materials: [], srcFor: (id) => id, safeArea: false }));
+assert.deepEqual(offData.safeArea, safeAreaPx("9:16", 1080, 1920, false), "data AI ikut jarak tepi biasa");
+assert.equal(motionCaptions({ ...off, motion: { durationS: 4, subtitle: true } }, [{ text: "halo", start: 0, end: 0.5 }])?.safeArea, false, "subtitle motion membawa pilihan");
+assert.equal(safeAreaErrors({ overlay: "export default () => <div style={{ top: 40 }}>Halo</div>" }, "9:16", false).length, 0, "safe area mati: tidak diwajibkan");
+assert.match(safeAreaInstruction({ aspect: "9:16", width: 1080, height: 1920, follow: false }), /SAFE AREA DIMATIKAN/);
 
 console.log("fase23: semua tes lulus");

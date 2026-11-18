@@ -90,12 +90,13 @@ const sourceFor = (sources: EditedProps["sources"], seg: FrameSegment, fps: numb
   return { ...s, startFrame: Math.round(s.offset * fps) };
 };
 
-export const Edited = ({ endClip, onVideoError, onCreativeError, denoisedSrc, sources, talent, sfx, creative, fx, textFx, videoEdit, titles = [], motion, src, segments, sourceSeconds, fadeFrames, focusX, focusY = 0.5, aspect, style, textScale, textBottom, captionAnim, camera, pages, showCamera, showCaptions, showEffects }: EditedProps & PreviewPlayback) => {
+export const Edited = ({ endClip, onVideoError, onCreativeError, denoisedSrc, sources, talent, sfx, creative, fx, textFx, videoEdit, titles = [], motion, src, segments, sourceSeconds, fadeFrames, focusX, focusY = 0.5, aspect, style, textScale, textBottom, safeArea, captionAnim, camera, pages, showCamera, showCaptions, showEffects }: EditedProps & PreviewPlayback) => {
+  const safe = safeArea !== false;
   const { fps } = useVideoConfig();
   const frames = toFrameSegments(segments, fps, sourceSeconds);
   const total = frames.reduce((n, f) => n + f.length, 0);
   const { width, height } = useVideoConfig();
-  const creativeData: CreativeData | null = creative ? { width, height, fps, durationInFrames: total, aspect, words: creative.words, joins: frames.slice(1).map((f) => f.at / fps), colors: style.colors, fonts: creativeFonts(), safeArea: safeAreaPx(aspect, width, height), ...(creative.assets?.length ? { assets: creative.assets } : {}), ...(creative.faces?.length ? { faces: creative.faces } : {}) } : null;
+  const creativeData: CreativeData | null = creative ? { width, height, fps, durationInFrames: total, aspect, words: creative.words, joins: frames.slice(1).map((f) => f.at / fps), colors: style.colors, fonts: creativeFonts(), safeArea: safeAreaPx(aspect, width, height, safe), ...(creative.assets?.length ? { assets: creative.assets } : {}), ...(creative.faces?.length ? { faces: creative.faces } : {}) } : null;
   // Fase 24: teks di belakang talent butuh lapisan talent transparan untuk SEMUA video; tanpa itu lapisan Behind tidak digambar
   const talentReady = !!sources?.length && sources.every((x) => !!x.talentSrc);
   const behind = talentReady && hasBehind(creative?.overlay);
@@ -129,9 +130,9 @@ export const Edited = ({ endClip, onVideoError, onCreativeError, denoisedSrc, so
       </FxStage>
       {showEffects && <Effects style={style} />}
       </MotionStage>
-      <TitleOverlays titles={titles} style={style} aspect={aspect} textFx={textFx} />
+      <TitleOverlays titles={titles} style={style} aspect={aspect} textFx={textFx} safe={safe} />
       {/* Subtitle yang digantikan lapisan kreatif sudah dibuang dari `pages` di build-props (hanya di rentang kreatif) */}
-      {showCaptions && <Subtitles pages={pages} style={style} aspect={aspect} anim={captionAnim} textScale={textScale} textBottom={textBottom} textFx={textFx} />}
+      {showCaptions && <Subtitles pages={pages} style={style} aspect={aspect} anim={captionAnim} textScale={textScale} textBottom={textBottom} textFx={textFx} safe={safe} />}
       <SfxTrack cues={sfx} />
       <CreativeFontLoader fonts={creative?.fonts} onError={onCreativeError} />
       {creativeData && <CreativeOverlay code={creative?.overlay} data={creativeData} ranges={creative?.ranges} onError={onCreativeError} />}
@@ -140,7 +141,7 @@ export const Edited = ({ endClip, onVideoError, onCreativeError, denoisedSrc, so
         <Sequence from={total} durationInFrames={endClip.frames} name="Klip akhir">
           <AbsoluteFill style={{ backgroundColor: endClip.background }}>
             <CreativeFontLoader fonts={endClip.fonts} onError={onCreativeError} />
-            <CreativeOverlay code={endClip.overlay} onError={onCreativeError} data={{ width, height, fps, durationInFrames: endClip.frames, aspect, words: [], joins: [], colors: style.colors, fonts: creativeFonts(), safeArea: safeAreaPx(aspect, width, height), mode: "motion", assets: endClip.assets ?? [] }} />
+            <CreativeOverlay code={endClip.overlay} onError={onCreativeError} data={{ width, height, fps, durationInFrames: endClip.frames, aspect, words: [], joins: [], colors: style.colors, fonts: creativeFonts(), safeArea: safeAreaPx(aspect, width, height, safe), mode: "motion", assets: endClip.assets ?? [] }} />
           </AbsoluteFill>
         </Sequence>
       )}

@@ -103,6 +103,8 @@ type Props = {
   /** Buka panel SFX (pustaka) untuk menambah di playhead. */
   onOpenSfx: () => void;
   onCopyCreativeSfx: () => void;
+  /** Volume audio sumber (pengali), bisu, dan pembuka pengaturan Audio (Manual → Audio). */
+  audioVolume?: number; audioMuted?: boolean; onOpenAudio?: () => void;
   /** Fase 16: video project (sumbu reel) dan urutan tampil video yang terlihat. */
   reel: ReelClip[];
   reelOrder: string[];
@@ -118,7 +120,7 @@ type Props = {
 
 export const Timeline = memo(
   forwardRef<TimelineHandle, Props>(function Timeline(
-    { clips, selectedClip, onSelectClip, onClipRange, onRestoreGap, titles, selectedTitle, onSelectTitle, onTitleRange, keyframes, onSplit, onDeleteClip, disabled, expanded, onExpand, duration: sourceDuration, fps, frameSegs, suggestions, camera, requests, pages, selectedId, playing, onSelect, onSeek, onScrubStart, subtitleClips, subtitlesOn, selectedSub, onSelectSub, onSubtitleRange, subtitleText, creativeRanges, selectedCreative, onSelectCreative, onCreativeRange, selectedCamera, onSelectCamera, onAutoSubtitle, onAddSubtitle, onRegenerateSubtitle, hasSubtitles, subtitleStatus, waveform, sfxCues, creativeSfx, sfxInfo, selectedSfx, onSelectSfx, onSfxMove, onOpenSfx, onCopyCreativeSfx, reel, reelOrder, onReorder, onDropVideo, onSelectVideo, endClipSeconds = 0, onSelectEndClip },
+    { clips, selectedClip, onSelectClip, onClipRange, onRestoreGap, titles, selectedTitle, onSelectTitle, onTitleRange, keyframes, onSplit, onDeleteClip, disabled, expanded, onExpand, duration: sourceDuration, fps, frameSegs, suggestions, camera, requests, pages, selectedId, playing, onSelect, onSeek, onScrubStart, subtitleClips, subtitlesOn, selectedSub, onSelectSub, onSubtitleRange, subtitleText, creativeRanges, selectedCreative, onSelectCreative, onCreativeRange, selectedCamera, onSelectCamera, onAutoSubtitle, onAddSubtitle, onRegenerateSubtitle, hasSubtitles, subtitleStatus, waveform, sfxCues, creativeSfx, sfxInfo, selectedSfx, onSelectSfx, onSfxMove, onOpenSfx, onCopyCreativeSfx, audioVolume = 1, audioMuted = false, onOpenAudio,reel, reelOrder, onReorder, onDropVideo, onSelectVideo, endClipSeconds = 0, onSelectEndClip },
     ref,
   ) {
     // Panjang dan pemetaan timeline hasil. `duration` di bawah = durasi HASIL (yang tampil).
@@ -405,9 +407,9 @@ export const Timeline = memo(
         </div>
         <div className={s.tlBody}>
           <div className={s.tlLabels} ref={labelsRef}>
-            {rows.map((r) => (
-              <div key={r.label} className={s.tlLabel} style={{ height: r.h }}>{r.label}</div>
-            ))}
+            {rows.map((r) => r.label === "Audio" && onOpenAudio
+              ? <button key={r.label} type="button" className={`${s.tlLabel} ${s.tlLabelBtn}`} style={{ height: r.h }} onClick={onOpenAudio} title="Atur volume, bisu, fade, dan reduksi noise audio sumber">Audio <small>{audioMuted ? "bisu" : `${Math.round(audioVolume * 100)}%`}</small></button>
+              : <div key={r.label} className={s.tlLabel} style={{ height: r.h }}>{r.label}</div>)}
           </div>
           <div className={s.tlScroll} ref={scrollRef} onScroll={(e) => { if (labelsRef.current) labelsRef.current.scrollTop = e.currentTarget.scrollTop; }}>
             <div className={s.tlInner} ref={innerRef} style={{ width }}>
@@ -472,7 +474,7 @@ export const Timeline = memo(
                 ))}
               </div>
 
-              <WaveformLane scrollRef={scrollRef} pps={z} duration={duration} frameSegs={frameSegs} fps={fps} wave={waveform} height={ROW_AUDIO} onClick={seekFromEvent} />
+              <WaveformLane scrollRef={scrollRef} pps={z} duration={duration} frameSegs={frameSegs} fps={fps} wave={waveform} height={ROW_AUDIO} onClick={seekFromEvent} gain={audioMuted ? 0 : audioVolume} />
 
               {/* SFX (Fase 14): kotak edit bisa digeser; garis putus-putus = dari Mode Kreatif (salin ke edit untuk mengubah) */}
               <div className={s.lane} style={{ height: ROW_SUB }} onClick={seekFromEvent}>

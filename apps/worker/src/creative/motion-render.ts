@@ -7,6 +7,7 @@ import { loadCreativeCode } from "@app/shared/creative-store";
 import { loadCreativeSfx } from "@app/shared/sfx-library";
 import { normalizeStyle } from "../../../../packages/remotion/src/build-props.ts";
 import { renderMotion } from "../render.ts";
+import { RENDER_CANCELLED, watchRenderCancel } from "../render-cancel.ts";
 import { probe } from "../media.ts";
 import { creativeErrorsFromLogs } from "./stills.ts";
 import { fontServeFiles, prepareMotion } from "./handler.ts";
@@ -32,16 +33,30 @@ export async function handleMotionRender(job: JobRow, { db, setProgress }: Ctx):
   let last = 0;
   // Fase 24: font tambahan versi ini (pustaka / unggahan) ikut disajikan
   const fonts = loadCreativeFonts(job.project_id, versionId);
-  const r = await renderMotion({
-    materials: [...prep.files, ...fontServeFiles(fonts)],
-    props: (srcFor) => prep.props(srcFor, loaded.code.overlay, loadCreativeSfx(job.project_id, versionId), loaded.code.replacesCaptions, fonts),
-    outFile: partFile,
-    onProgress: (f) => { if (f - last >= 0.02) { last = f; void setProgress(0.02 + f * 0.96); } },
-    onBrowserLog: (t) => { if (t.includes("[kreatif]") && logs.length < 200) logs.push(t); },
-  });
+  const cancel = watchRenderCancel(db, job.id);
+  let r: { durationInFrames: number };
+  try {
+    if (await cancel.check()) throw new Error(RENDER_CANCELLED);
+    r = await renderMotion({
+      materials: [...prep.files, ...fontServeFiles(fonts)],
+      props: (srcFor) => prep.props(srcFor, loaded.code.overlay, loadCreativeSfx(job.project_id, versionId), loaded.code.replacesCaptions, fonts),
+      outFile: partFile,
+      cancelSignal: cancel.cancelSignal,
+      onProgress: (f) => { if (f - last >= 0.02) { last = f; void setProgress(0.02 + f * 0.96); } },
+      onBrowserLog: (t) => { if (t.includes("[kreatif]") && logs.length < 200) logs.push(t); },
+    });
+  } catch (e) {
+    await rm(partFile, { force: true });
+    if (cancel.cancelled() || await cancel.check()) throw new Error(RENDER_CANCELLED);
+    throw e;
+  } finally {
+    cancel.stop();
+  }
   const out = await probe(partFile);
   const expected = r.durationInFrames / prep.props(() => "").fps;
   if (Math.abs(out.durationS - expected) > 0.25) { await rm(partFile, { force: true }); throw new Error(`Durasi hasil ${out.durationS.toFixed(2)} dtk tidak sesuai (${expected.toFixed(2)} dtk)`); }
+  // Dibatalkan tepat saat render selesai: hasil dibuang, tidak dicatat
+  if (await cancel.check()) { await rm(partFile, { force: true }); throw new Error(RENDER_CANCELLED); }
   await rename(partFile, finalFile);
   const size = (await stat(finalFile)).size;
   const { data: outAsset, error } = await db.from("assets")

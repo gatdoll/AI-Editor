@@ -54,10 +54,18 @@ export async function discardEmptySave(handle: SaveHandle): Promise<boolean> {
 }
 
 /** Pesan render gagal untuk pengguna, sekaligus membersihkan file kosong di lokasi pilihan. */
-export async function renderFailedMessage(handle: SaveHandle | null, error: string | null | undefined): Promise<string> {
-  const reason = `Render gagal: ${error?.split("\n")[0] ?? "dibatalkan"}`;
+export async function renderFailedMessage(handle: SaveHandle | null, error: string | null | undefined, cancelled = false): Promise<string> {
+  const reason = cancelled ? "Render dibatalkan." : `Render gagal: ${error?.split("\n")[0] ?? "dibatalkan"}`;
   if (!handle) return reason;
   return (await discardEmptySave(handle)) ? `${reason} File kosong ${handle.name} sudah dihapus.` : `${reason} ${handle.name} tidak terisi; jangan dipakai, ekspor ulang saja.`;
+}
+
+/** Batalkan render project ini (video atau motion). Mengembalikan pesan untuk pengguna. */
+export async function cancelRender(projectId: string): Promise<string> {
+  const r = await fetch(`/api/projects/${projectId}/render/cancel`, { method: "POST" }).catch(() => null);
+  if (!r) return "Gagal menghubungi server. Render belum dibatalkan.";
+  const j = await r.json().catch(() => ({}));
+  return r.ok ? "Membatalkan render… worker berhenti dalam beberapa detik. Tidak ada file yang disimpan." : (j.error ?? "Gagal membatalkan render.");
 }
 
 /** Unduhan biasa (cadangan bila "Simpan sebagai" tidak didukung). */

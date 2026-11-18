@@ -446,3 +446,7 @@
 .attachRow > .attach { display: contents; }
 .composer:not(.composerMin) { flex-shrink: 0; max-height: min(70vh, 100%); overflow-y: auto; }
 .composerSend { position: sticky; bottom: 0; z-index: 2; padding: 6px 0; background: var(--panel); }
+/* Label track Audio: tombol pembuka Manual → Audio (volume sumber) */
+.tlLabelBtn { width: 100%; border: 0; border-bottom: 1px solid var(--line); background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.tlLabelBtn small { margin-left: auto; color: var(--accent); font-size: 9px; }
+.tlLabelBtn:hover { color: var(--text, inherit); background: var(--hover, rgba(255,255,255,.04)); }

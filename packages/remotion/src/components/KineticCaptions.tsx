@@ -1,6 +1,6 @@
 import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { Fragment } from "react";
-import { FX, MOTION, SUBTITLE, type AspectId, type StyleDef } from "@app/config";
+import { FX, MOTION, SUBTITLE, subtitleZone, type AspectId, type StyleDef } from "@app/config";
 import { activeTokenIndex, pageAt, type CaptionPage } from "../captions.ts";
 import { blurSlideProgress, wordMotion } from "../motion-plan.ts";
 import type { TextFx } from "../build-props.ts";
@@ -8,7 +8,7 @@ import { fontFor } from "./fonts.ts";
 import { exitFactor, highlightLook, SweepBox } from "./text-fx.tsx";
 
 /** Word-timed masked reveals, a spring settle, and a drawn accent. All driven by frame. */
-export function KineticCaptions({ pages, style, aspect, textScale = 1, textBottom = null, variant = "kinetik", textFx }: { pages: CaptionPage[]; style: StyleDef; aspect: AspectId; textScale?: number; textBottom?: number | null; variant?: "kinetik" | "blur-slide"; textFx?: TextFx }) {
+export function KineticCaptions({ pages, style, aspect, textScale = 1, textBottom = null, variant = "kinetik", textFx, safe: follow = true }: { pages: CaptionPage[]; style: StyleDef; aspect: AspectId; textScale?: number; textBottom?: number | null; variant?: "kinetik" | "blur-slide"; textFx?: TextFx; /** false = tidak mengikuti safe area platform */ safe?: boolean }) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const t = frame / fps;
@@ -21,7 +21,7 @@ export function KineticCaptions({ pages, style, aspect, textScale = 1, textBotto
   const font = fontFor(textFx?.font, style.fontWeight);
   const leave = exitFactor(textFx, t, page.end);
   // Lebar teks dibatasi safe area (9:16: kolom tombol like/komentar di kanan), bukan hanya captionMaxWidth
-  const safe = SUBTITLE.safeZone[aspect];
+  const safe = subtitleZone(aspect, follow);
   const maxW = width * Math.min(MOTION.captionMaxWidth, 1 - safe.side - safe.right);
   const fontSize = Math.min(SUBTITLE.fontSizePx[aspect] * unit * MOTION.captionScale * textScale, maxW / longest);
   return <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: height * (textBottom ?? safe.bottom), paddingLeft: width * safe.side, paddingRight: width * safe.right, pointerEvents: "none", opacity: leave, transform: textFx?.exit === "geser" ? `translateY(${-(1 - leave) * FX.exitTravelEm * fontSize}px)` : undefined }}>

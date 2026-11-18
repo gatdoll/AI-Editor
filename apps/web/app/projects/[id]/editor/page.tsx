@@ -37,7 +37,7 @@ import { TranscriptAiFix } from "./TranscriptAiFix";
 import { useTalent } from "../../../../lib/use-talent";
 import { SafeAreaGuide, useSafeAreaGuide } from "../../../components/SafeAreaGuide";
 import { useDerivedMedia } from "../../../../lib/use-derived-media";
-import { discardEmptySave, downloadUrl, isAbort, pickSaveFile, renderFailedMessage, saveUrlToHandle } from "../../../../lib/save-file";
+import { cancelRender, discardEmptySave, downloadUrl, isAbort, pickSaveFile, renderFailedMessage, saveUrlToHandle } from "../../../../lib/save-file";
 import s from "./editor.module.css";
 import { SfxPanel } from "../../../components/SfxPanel";
 import { useSfxLibrary } from "../../../../lib/use-sfx-library";
@@ -99,6 +99,7 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
   // Fase 14: SFX terpilih (indeks di style.sfx.cues) dan pemicu pindah ke bagian SFX di panel Manual
   const [selectedSfx, setSelectedSfx] = useState<number | null>(null);
   const [sfxFocus, setSfxFocus] = useState(0);
+  const [audioFocus, setAudioFocus] = useState(0);
   const sfxLib = useSfxLibrary();
   const manual = useMemo(() => normalizeManual(style.manual), [style.manual]);
 
@@ -443,7 +444,7 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
     if (rj.status === "failed" || rj.status === "cancelled") {
       pendingSave.current = null;
       setSaveState(null);
-      void renderFailedMessage(p.handle, rj.error).then(say);
+      void renderFailedMessage(p.handle, rj.error, rj.status === "cancelled").then(say);
       return;
     }
     if (rj.status === "done" && last && new Date(last.created_at).getTime() >= p.since) {
@@ -655,6 +656,13 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
     if (style.params["kamera.otomatis"] === false) return say("Gerakan otomatis sedang dimatikan untuk seluruh video. Nyalakan lagi lewat tombol di panel ini.");
     d.updateStyle({ cameraMuted: (style.cameraMuted ?? []).filter((x) => !(mid >= x.start && mid < x.end)) });
     say("Gerakan kamera dikembalikan. Undo tersedia.");
+  };
+  /** Ikuti safe area platform (param bingkai.safeArea). Bawaan menyala: kunci dihapus agar project lama tidak berubah. */
+  const followSafeArea = style.params["bingkai.safeArea"] !== false;
+  const setFollowSafeArea = (on: boolean) => {
+    const { ["bingkai.safeArea"]: _drop, ...rest } = style.params;
+    d.updateStyle({ params: on ? rest : { ...style.params, "bingkai.safeArea": false } });
+    say(on ? "Subtitle, judul, dan animasi AI kembali mengikuti safe area Reels/TikTok. Undo tersedia." : "Safe area tidak diikuti: hanya jarak tepi biasa. Animasi AI yang sudah ada tidak berubah sampai dibuat versi baru. Undo tersedia.");
   };
   const cameraAuto = (on: boolean) => {
     if (manualDisabled) return say("Tutup simulasi usulan dan tunggu AI selesai sebelum edit manual.");
@@ -876,6 +884,7 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
           title={renderBusy ? "Render sedang berjalan. Ekspor berikutnya bisa dimulai setelah selesai." : saveState ?? "Pilih lokasi file, lalu render MP4"}>
           <Icon name="export" size={15}/>{exportInfo?.renderJob?.status === "queued" ? "Menunggu render…" : renderBusy ? `Merender… ${Math.round((exportInfo?.renderJob?.progress ?? 0) * 100)}%` : saveState?.startsWith("Menyimpan") ? "Menyimpan…" : "Ekspor MP4"}
         </button>
+        {renderBusy && <button className={s.btn} onClick={() => void cancelRender(id).then((m) => { say(m); void d.loadExport(); })} title="Hentikan render ini. Video, EDL, dan hasil ekspor sebelumnya tidak berubah.">Batalkan render</button>}
       </div>
 
       <div className={s.main}>
@@ -937,7 +946,7 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
                 </div></fieldset>
               </div>
             ) :
-            <ManualPanel sfxFocus={sfxFocus} sfx={<SfxPanel lib={sfxLib} cues={sfxCues} selected={selectedSfx} onSelect={setSelectedSfx} onAdd={sfxAdd} onPatch={sfxPatch} onDelete={sfxDelete}
+            <ManualPanel sfxFocus={sfxFocus} audioFocus={audioFocus}sfx={<SfxPanel lib={sfxLib} cues={sfxCues} selected={selectedSfx} onSelect={setSelectedSfx} onAdd={sfxAdd} onPatch={sfxPatch} onDelete={sfxDelete}
                 master={sfxMaster} onMaster={(v) => d.updateStyle({ params: { ...style.params, "audio.sfx": v } }, "audio.sfx")}
                 creativeCount={creativeSfx.length} useCreative={sfxUseCreative} onUseCreative={(on) => setSfx(sfxCues, on ? "SFX Mode Kreatif dinyalakan." : "SFX Mode Kreatif dimatikan.", on)} onCopyCreative={sfxCopyCreative}
                 onSeek={seekSource} disabled={manualDisabled} onMessage={say} timeNote="Waktu di sini = waktu video mentah; SFX ikut bergeser bila cut berubah."/>}
@@ -980,7 +989,7 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
         </div>
 
         <div className={s.center}>
-          <div className={s.viewerBar}><span><Icon name="play" size={12}/> PREVIEW</span><span>{derived.denoise.level > 0 && <span className={s.chip} title="Kurangi noise (Audio)">{derived.denoise.status === "siap" ? `Noise −${derived.denoise.level}%` : derived.denoise.status === "memproses" ? `Memproses noise ${derived.denoise.level}%…` : "Noise: gagal"}</span>} {style.aspect} <span className={s.chip}>{out.width} × {out.height}</span> <button className={`${s.mini} ${s.panToggle}`} aria-pressed={safeGuide} onClick={() => setSafeGuide(!safeGuide)} title="Tampilkan bagian yang tertutup tombol dan caption Reels/TikTok (tidak ikut terekspor)">▣ Safe area</button> <button className={`${s.mini} ${s.panToggle}`} aria-pressed={panMode} disabled={!built || d.promptRunning} title="Geser dan zoom video langsung di canvas" onClick={() => { playerRef.current?.pause(); setPanMode((v) => !v); }}>✥ Geser video</button></span></div>
+          <div className={s.viewerBar}><span><Icon name="play" size={12}/> PREVIEW</span><span>{derived.denoise.level > 0 && <span className={s.chip} title="Kurangi noise (Audio)">{derived.denoise.status === "siap" ? `Noise −${derived.denoise.level}%` : derived.denoise.status === "memproses" ? `Memproses noise ${derived.denoise.level}%…` : "Noise: gagal"}</span>} {style.aspect} <span className={s.chip}>{out.width} × {out.height}</span> <button className={`${s.mini} ${s.panToggle}`} aria-pressed={safeGuide} onClick={() => setSafeGuide(!safeGuide)} title="Tampilkan bagian yang tertutup tombol dan caption Reels/TikTok (tidak ikut terekspor)">▣ Safe area</button> <label className={s.mini} style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }} title="Dicentang: subtitle, judul, dan animasi AI menghindari bagian yang tertutup UI Reels/TikTok. Tidak dicentang: hanya jarak tepi biasa (ikut render)"><input type="checkbox" checked={followSafeArea} disabled={manualDisabled} onChange={(e) => setFollowSafeArea(e.target.checked)} style={{ margin: 0 }} /> Ikuti safe area</label> <button className={`${s.mini} ${s.panToggle}`} aria-pressed={panMode} disabled={!built || d.promptRunning} title="Geser dan zoom video langsung di canvas" onClick={() => { playerRef.current?.pause(); setPanMode((v) => !v); }}>✥ Geser video</button></span></div>
           <div className={s.stage}>{stage}</div>
           <div className={s.transport}>
             <button className={s.play} onClick={() => playerRef.current?.toggle()} disabled={!built || !!previewError} aria-label={playing ? "Jeda" : "Putar"}><Icon name={playing ? "pause" : "play"} size={16}/></button>
@@ -1016,6 +1025,7 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
           reel={clips} reelOrder={visibleOrder} onReorder={reorderVideos} onDropVideo={dropVideo} onSelectVideo={selectVideo}
           endClipSeconds={built?.props.endClip ? style.endClip?.seconds ?? 0 : 0} onSelectEndClip={openEndClip}
           onSelectSfx={(i) => { selectSfx(i); const c = sfxCues[i]; if (c) seekSource(c.at); }} onSfxMove={(i, at) => sfxPatch(i, { at })} onOpenSfx={() => selectSfx(null)} onCopyCreativeSfx={sfxCopyCreative}
+          audioVolume={Number(style.params["audio.volume"] ?? 1)} audioMuted={style.params["audio.bisu"] === true} onOpenAudio={() => { setTab("manual"); setAudioFocus((n) => n + 1); }}
           onAutoSubtitle={autoSubtitle} onAddSubtitle={addSubtitle} onRegenerateSubtitle={() => void regenerateSubtitle()} hasSubtitles={subClips.length > 0} subtitleStatus={transcribing && style.captions ? (hasTranscript ? "Membuat subtitle baru dari klip sekarang…" : "Membuat transkrip…") : null}
           ref={timelineRef}
           expanded={timelineExpanded} onExpand={() => setTimelineExpanded(!timelineExpanded)}

@@ -22,6 +22,7 @@ type CreativeData = {
   opini: { kredit: boolean; prefix: string } | undefined;  // (bisa tidak ada) project Opinion Motion; kredit = wajib tampilkan prefix + cue.source
   safeArea: { top: number; bottom: number; left: number; right: number };  // piksel dari tiap tepi yang tertutup UI platform (9:16: Reels/TikTok)
   faces: Array<{ t: number; x: number; y: number; w: number; h: number }> | undefined;  // (bisa tidak ada) wajah talent: detik hasil + piksel kanvas
+  profAi: object | undefined;  // (bisa tidak ada) Prof. AI (project Animasi): tampilkan HANYA lewat <ProfAI data={data} /> (lihat "Prof. AI")
 };
 
 // src = URL saat render (pakai PERSIS ini: <Img src={data.assets[0].src} />); file = salinan di folder kerja untuk kamu LIHAT
@@ -139,7 +140,7 @@ ${TYPES}
 - \`react\`: seluruhnya (hooks, \`React.createElement\`, JSX).
 - \`remotion\`, HANYA: ${REMOTION_API.map((n) => `\`${n}\``).join(", ")}.
 - Fungsi bawaan JavaScript yang murni (Math kecuali \`Math.random\`, Array, String, Number, JSON, Object.keys/values/entries).
-- \`character\`: HANYA \`Character\` (karakter ber-rig, lihat di bawah): \`import { Character } from "character";\`.
+- \`character\`: HANYA \`Character\` (karakter ber-rig) dan \`ProfAI\` (lihat di bawah): \`import { Character, ProfAI } from "character";\`.
 - Tidak ada import lain. Tipe \`CreativeData\`, \`CreativeProps\`, dan \`CreativeVideoStyle\` bisa dipakai tanpa import (tipe dihapus saat compile, tidak diperiksa tipenya).
 
 ## Skill
@@ -198,6 +199,26 @@ const prof = data.assets!.find((a) => a.rig && /prof/i.test(a.name))!;
 - \`flip\`: menghadap ke arah lain. \`shadow={false}\`: tanpa bayangan lantai. \`seed\`: beda waktu kedip antar karakter.
 - Kedip/mulut hanya ada bila wajah terdeteksi (\`rig.eyes\`/\`rig.mouth\` di brief.json); kaki \`"menyatu"\` = jalan memakai seluruh badan.
 - Lengan menyatu dengan badan: tidak ada gerak tangan. Jangan menggambar ulang karakter; selalu pakai \`Character\` untuk aset ber-rig.
+
+## Prof. AI (bila \`data.profAi\` ada, project Animasi)
+Maskot tetap: profesor chibi rambut putih, kacamata bulat, jas putih. Dua rig dari gambar asli (jangan menggambar ulang): tampak depan + aksi tenang = avatar mesh (kepala menoleh 3D, rambut dan jas ber-fisika, mata/alis/mulut hidup); gerak besar dan tampak lain = rig tulang (siku dan lutut menekuk). Pemilihan otomatis.
+\`\`\`
+import { ProfAI } from "character";
+<ProfAI data={data} height={data.height * 0.5} view="front" action="explain" expression="happy" talking
+  dir="right" from={frameMulaiAksi} style={{ position: "absolute", left: x, top: y }} />
+\`\`\`
+- \`data\`: WAJIB \`data\` dari Overlay (gambar dari \`data.profAi\`, mulut dari \`data.words\`).
+- \`height\`: tinggi dari puncak rambut sampai sepatu. Kotak luar: lebar 0,6 x tinggi, kaki di tengah bawah kotak.
+- \`view\`: \`"front"\` (bawaan; satu-satunya dengan ekspresi dan mulut lengkap), \`"threequarter"\` (3/4 menghadap kiri), \`"side"\` (samping menghadap kiri), \`"back"\`. \`flip\` = menghadap kanan.
+- \`action\`: \`"idle"\` (napas, kedip, tangan turun), \`"talk"\`, \`"explain"\` (gestur tangan bergantian), \`"wave"\`, \`"point"\` dan \`"present"\` (satu tangan ke sisi \`dir\`: \`"left"\`/\`"right"\` dari sudut penonton),
+  \`"cheer"\` (dua tangan ke atas), \`"jump"\`, \`"nod"\`, \`"shake"\`, \`"shock"\`, \`"think"\`, \`"walk"\` (tampak 3/4, langkah sungguhan, MAJU SENDIRI ke arah hadap; \`inPlace\` = di tempat; \`flip\` = ke kanan).
+  Aksi sekali jalan (jump, nod, shake, shock) mulai di frame \`from\`.
+- \`expression\`: \`"neutral"\`, \`"happy"\`, \`"surprised"\`, \`"thinking"\`, \`"serious"\`, \`"sad"\`, \`"angry"\`, \`"shy"\` (pipi merah), \`"wink"\`. shock/think/cheer/jump memilih ekspresi sendiri bila tidak diisi.
+- Avatar mesh (tampak depan): idle, talk, explain, nod, shake, think, shock, jump. Lengannya hanya berayun kecil; lambai/tunjuk/sorak memakai rig tulang
+  (gambarnya sedikit berbeda): letakkan gerak besar di adegan sendiri, jangan bolak-balik tiap detik. \`rig="bones"\` = paksa rig tulang.
+- \`talking\`: mulut mengikuti kata di \`data.words\` (tertutup di jeda). Nyalakan selama Prof. AI yang bicara.
+- \`turnFrom\`: berganti tampak dari \`turnFrom\` ke \`view\` mulai frame \`from\` (squash cepat).
+- Siku dan lutut bisa menekuk, tetapi lengan chibi pendek: tangan tidak sampai ke dagu atau wajah, dan tidak bisa bersedekap.
 
 ## Safe area (\`data.safeArea\`)
 - Piksel dari tiap tepi yang tertutup antarmuka platform. 9:16 (Reels/TikTok/Shorts): atas = nama akun/tab, bawah = caption + nama + audio,

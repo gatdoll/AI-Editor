@@ -21,7 +21,7 @@ Aset sendiri (Fase 21): di project video, tab Aset. Gambar pengguna + keterangan
 
 Referensi gaya (Fase 22): unggahan atau link satu video YouTube/Instagram/TikTok di semua kotak Kreatif/motion (`ReferencePicker`, `attachReference`) -> worker `sampleReference` (yt-dlp, 16 frame) -> folder kerja `reference/` -> agen wajib menulis `reference.md` dulu, meniru GAYA bukan isi. Gagal diambil = job gagal dengan alasan.
 
-Safe area (Fase 23): `SAFE_AREA` di config (9:16 = UI Reels/TikTok: atas, bawah, kolom tombol kanan) adalah satu-satunya sumber untuk subtitle, judul, `data.safeArea` kode AI (kode 9:16 wajib memakainya), dan garis bantu pratinjau (`SafeAreaGuide`, tidak ikut render).
+Safe area (Fase 23): `SAFE_AREA` di config (9:16 = UI Reels/TikTok: atas, bawah, kolom tombol kanan) adalah satu-satunya sumber untuk subtitle, judul, `data.safeArea` kode AI (kode 9:16 wajib memakainya), dan garis bantu pratinjau (`SafeAreaGuide`, tidak ikut render). Centang "Ikuti safe area" (param `bingkai.safeArea`, bawaan menyala) di editor dan motion: mati = `SAFE_AREA_OFF` (jarak tepi biasa) lewat `safeAreaOf`/`subtitleZone`, dan kode AI tidak diwajibkan memakai `data.safeArea`.
 
 Talent dan font (Fase 24): job Kreatif menyiapkan talent bila prompt butuh (`npm run setup:talent`; RVM + YuNet di CPU -> `projects/<pid>/talent/`). Kode AI boleh `export function Behind` (di belakang talent) dan `export function faceBlur` (blur wajah); `data.faces` = posisi wajah. Font tambahan: pustaka Google Fonts (`npm run setup:fonts`) + unggahan, dipilih AI lewat `fonts.json`, dimuat komposisi dengan delayRender.
 

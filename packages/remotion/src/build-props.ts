@@ -39,6 +39,8 @@ export type ResolvedStyle = {
   textScale: number;
   /** Jarak subtitle dari bawah (pecahan tinggi). null = zona aman otomatis. */
   textBottom: number | null;
+  /** Ikuti safe area platform (param bingkai.safeArea). false = jarak tepi biasa (SAFE_AREA_OFF). */
+  safeArea: boolean;
   maxLines: number;
   wordsPerPage: number;
   tuning: { strength: number; minMoveSec?: number; maxMoveSec?: number };
@@ -74,6 +76,7 @@ export function resolveStyle(style: StyleChoice): ResolvedStyle {
     captionAnim: (str("teks.animasi") as CaptionAnim | undefined) ?? base.captionAnim,
     textScale: num("teks.ukuran") ?? 1,
     textBottom: num("teks.posisiBawah") ?? null,
+    safeArea: bool("bingkai.safeArea") ?? true,
     maxLines: num("teks.baris") ?? SUBTITLE.maxLines,
     wordsPerPage: num("teks.kataPerHalaman") ?? 0,
     tuning: { strength: num("kamera.kekuatanZoom") ?? 1, minMoveSec: num("kamera.gerakanMin"), maxMoveSec: num("kamera.gerakanMaks") },
@@ -302,7 +305,7 @@ export function captionPageOptions(style: StyleChoice): PageOptions {
 export function motionCaptions(style: StyleChoice, words: SrcWord[] | undefined | null): MotionCaptions | undefined {
   if (!words?.length || !motionSubtitleOn(style.motion)) return undefined;
   const rs = resolveStyle(style);
-  return { pages: buildPages(words, captionPageOptions(style)), style: rs.def, anim: rs.captionAnim, textScale: rs.textScale, textBottom: rs.textBottom, textFx: rs.text };
+  return { pages: buildPages(words, captionPageOptions(style)), style: rs.def, anim: rs.captionAnim, textScale: rs.textScale, textBottom: rs.textBottom, textFx: rs.text, ...(rs.safeArea ? {} : { safeArea: false }) };
 }
 
 /** Subtitle otomatis yang sedang tampil, dibekukan menjadi klip (edit subtitle pertama di timeline). */
@@ -458,6 +461,7 @@ export function buildEditedProps(args: {
       captionAnim,
       textScale: rs.textScale,
       textBottom: rs.textBottom,
+      ...(rs.safeArea ? {} : { safeArea: false }),
       camera,
       pages: style.captions ? captionPages : [],
       motion: { enabled: motionEnabled, spatial: (style.params["motion.ruang"] ?? "datar") as "datar" | "orbit" | "parallax", strength: Number(style.params["motion.kekuatan"] ?? MOTION.strength), scenes: motionEnabled ? planMotion(plannedPages, durationS, Number(style.params["motion.jeda"] ?? MOTION.sceneGapSec)) : [] },

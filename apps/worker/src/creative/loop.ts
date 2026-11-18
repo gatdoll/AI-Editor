@@ -116,9 +116,15 @@ export function subtitleZoneInstruction(): string {
  * Fase 23: safe area platform. 9:16 = UI Reels/TikTok/Shorts menutupi atas, bawah, dan kolom tombol kanan.
  * Elemen penting wajib di dalam kotak aman; nilai diambil dari data.safeArea (bukan angka tetap).
  */
-export function safeAreaInstruction(o: { aspect: AspectId; width: number; height: number }): string {
-  const a = safeAreaPx(o.aspect, o.width, o.height);
+export function safeAreaInstruction(o: { aspect: AspectId; width: number; height: number; follow?: boolean }): string {
+  const follow = o.follow !== false;
+  const a = safeAreaPx(o.aspect, o.width, o.height, follow);
   const box = `x ${a.left}–${o.width - a.right}, y ${a.top}–${o.height - a.bottom} (kanvas ${o.width}×${o.height})`;
+  // Pengguna mematikan "Ikuti safe area": tidak perlu menghindari UI platform, hanya jarak tepi biasa
+  if (!follow) return [
+    `SAFE AREA DIMATIKAN pengguna: tidak perlu menghindari antarmuka Reels/TikTok (nama akun, caption, kolom tombol). Cukup jaga jarak tepi biasa: atas ${a.top}px, bawah ${a.bottom}px, kiri ${a.left}px, kanan ${a.right}px (kotak ${box}); teks boleh lebih ke bawah dan ke samping dari biasanya.`,
+    "data.safeArea sudah berisi jarak tepi biasa ini; pakai nilainya (jangan angka tetap) agar penempatan tetap rapi.",
+  ].join(" ");
   return [
     o.aspect === "9:16"
       ? `SAFE AREA WAJIB (video vertikal untuk Reels/TikTok/Shorts): bagian ini tertutup antarmuka aplikasi: atas ${a.top}px (nama akun, tab Reels), bawah ${a.bottom}px (caption, nama akun, audio, tombol follow), kanan ${a.right}px (kolom like/komentar/share/simpan), kiri ${a.left}px.`
@@ -129,8 +135,8 @@ export function safeAreaInstruction(o: { aspect: AspectId; width: number; height
 }
 
 /** Fase 23: kode 9:16 wajib memakai data.safeArea (penempatan tidak boleh berangka tetap yang mengabaikan UI platform). */
-export function safeAreaErrors(out: { overlay?: string }, aspect: AspectId): string[] {
-  if (aspect !== "9:16" || !out.overlay?.trim()) return [];
+export function safeAreaErrors(out: { overlay?: string }, aspect: AspectId, follow = true): string[] {
+  if (!follow || aspect !== "9:16" || !out.overlay?.trim()) return [];
   return /\bsafeArea\b/.test(out.overlay) ? [] : ["Video 9:16 untuk Reels/TikTok: kode tidak memakai data.safeArea. Taruh semua teks, logo, wajah, dan aset penting di dalam kotak aman (padding dari data.safeArea.top/bottom/left/right); hanya latar dan dekorasi yang boleh sampai tepi."];
 }
 

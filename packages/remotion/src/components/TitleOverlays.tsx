@@ -1,4 +1,4 @@
-import { FONT, FX, MOTION, SUBTITLE, type AspectId, type StyleDef } from "@app/config";
+import { FONT, FX, MOTION, SUBTITLE, subtitleZone, type AspectId, type StyleDef } from "@app/config";
 import { AbsoluteFill, Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { KineticCaptions } from "./KineticCaptions.tsx";
 import { fontFor } from "./fonts.ts";
@@ -10,7 +10,7 @@ const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
 
 /** Headline hook: tiap kata masuk bergantian dari atas, kiri, kanan, lalu menyatu jadi satu kalimat. */
-function HookTitle({ title, style, aspect, textFx }: { title: MotionTitle; style: StyleDef; aspect: AspectId; textFx?: TextFx }) {
+function HookTitle({ title, style, aspect, textFx, safe = true }: { title: MotionTitle; style: StyleDef; aspect: AspectId; textFx?: TextFx; safe?: boolean }) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const t = frame / fps;
@@ -20,9 +20,10 @@ function HookTitle({ title, style, aspect, textFx }: { title: MotionTitle; style
   const size = SUBTITLE.fontSizePx[aspect] * (height / SUBTITLE.referenceHeight[aspect]) * titleScale(title.text, width, height, aspect) * MOTION.captionScale;
   const out = interpolate(t, [title.endS - MOTION.exitSec, title.endS], [1, 0], clamp);
   const dirs = [[0, -1], [-1, 0], [1, 0]] as const;
+  const zone = subtitleZone(aspect, safe);
   return (
-    <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: height * titleBottom(title.position, aspect), paddingLeft: width * SUBTITLE.safeZone[aspect].side, paddingRight: width * SUBTITLE.safeZone[aspect].right, pointerEvents: "none", opacity: out }}>
-      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0.22em", maxWidth: width * Math.min(MOTION.captionMaxWidth, 1 - SUBTITLE.safeZone[aspect].side - SUBTITLE.safeZone[aspect].right), fontFamily: font.fontFamily, fontWeight: font.fontWeight, fontSize: size, lineHeight: MOTION.captionLineHeight, textTransform: style.uppercase ? "uppercase" : "none" }}>
+    <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: height * titleBottom(title.position, aspect, safe), paddingLeft: width * zone.side, paddingRight: width * zone.right, pointerEvents: "none", opacity: out }}>
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0.22em", maxWidth: width * Math.min(MOTION.captionMaxWidth, 1 - zone.side - zone.right), fontFamily: font.fontFamily, fontWeight: font.fontWeight, fontSize: size, lineHeight: MOTION.captionLineHeight, textTransform: style.uppercase ? "uppercase" : "none" }}>
         {words.map((w, i) => {
           const start = title.startS + i * FX.hook.wordSec;
           const p = spring({ frame: Math.round((t - start) * fps), fps, config: MOTION.wordSpring });
@@ -63,12 +64,12 @@ function LowerThird({ title, style, aspect, textFx }: { title: MotionTitle; styl
   );
 }
 
-export function TitleOverlays({ titles, style, aspect, textFx }: { titles: MotionTitle[]; style: StyleDef; aspect: AspectId; textFx?: TextFx }) {
+export function TitleOverlays({ titles, style, aspect, textFx, safe = true }: { titles: MotionTitle[]; style: StyleDef; aspect: AspectId; textFx?: TextFx; /** false = tidak mengikuti safe area platform */ safe?: boolean }) {
   const { width, height } = useVideoConfig();
   return <>{titles.map((title, i) => {
     const key = `${i}-${title.startS}`;
-    if (title.animation === "hook") return <HookTitle key={key} title={title} style={style} aspect={aspect} textFx={textFx} />;
+    if (title.animation === "hook") return <HookTitle key={key} title={title} style={style} aspect={aspect} textFx={textFx} safe={safe} />;
     if (title.animation === "lower-third") return <LowerThird key={key} title={title} style={style} aspect={aspect} textFx={textFx} />;
-    return <KineticCaptions key={key} pages={[titlePage(title)]} style={{ ...style, dimOpacity: 1 }} aspect={aspect} variant={title.animation} textScale={titleScale(title.text, width, height, aspect)} textBottom={titleBottom(title.position, aspect)} textFx={textFx ? { ...textFx, exit: "potong" } : undefined} />;
+    return <KineticCaptions key={key} pages={[titlePage(title)]} style={{ ...style, dimOpacity: 1 }} aspect={aspect} variant={title.animation} textScale={titleScale(title.text, width, height, aspect)} textBottom={titleBottom(title.position, aspect, safe)} textFx={textFx ? { ...textFx, exit: "potong" } : undefined} safe={safe} />;
   })}</>;
 }

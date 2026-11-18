@@ -7,6 +7,7 @@ import { TRANSCRIPT_FIX, ANALYSIS, VIDEO } from "@app/config";
 import { Provider, resolveMediaPath, type AssetRow, type JobRow, type Word } from "@app/shared";
 import { analyzeWithLlm, buildSuggestionRows } from "./analyze/run.ts";
 import { renderEdited } from "./render.ts";
+import { RENDER_CANCELLED, watchRenderCancel } from "./render-cancel.ts";
 import { loadCreativeCode, type CreativeCodeRow } from "@app/shared/creative-store";
 import { getSfx, loadCreativeSfx } from "@app/shared/sfx-library";
 import { loadReel, rawLabel } from "@app/shared/reel-db";
@@ -396,11 +397,15 @@ export async function handleRender(job: JobRow, { db, setProgress }: Ctx): Promi
   // Error kode kreatif per frame: frame itu tanpa layer kreatif (error boundary), lalu DILAPORKAN di job
   const browserLogs: string[] = [];
   let last = 0;
+  const cancel = watchRenderCancel(db, job.id);
+  try {
+  if (await cancel.check()) throw new Error(RENDER_CANCELLED);
   // Satu kali coba ulang: sekali teramati gagal sesaat di folder sementara Windows (ffmpeg tidak bisa menulis
   // ke folder audio-mixing) lalu berhasil di percobaan berikutnya tanpa perubahan apa pun.
   for (let attempt = 1; ; attempt++) {
     try {
       await renderEdited({
+        cancelSignal: cancel.cancelSignal,
         sourceFile,
         outFile: partFile,
         props: built.props,
@@ -419,10 +424,15 @@ export async function handleRender(job: JobRow, { db, setProgress }: Ctx): Promi
       break;
     } catch (e) {
       await rm(partFile, { force: true });
+      // Dibatalkan pengguna: berhenti, jangan mencoba ulang
+      if (cancel.cancelled() || await cancel.check()) throw new Error(RENDER_CANCELLED);
       if (attempt >= 2) throw e;
       console.error(`[worker] render gagal (percobaan ${attempt}), mengulang:`, e instanceof Error ? e.message.split("\n")[0] : e);
       last = 0;
     }
+  }
+  } finally {
+    cancel.stop();
   }
 
   // Verifikasi hasil dengan ffprobe, bukan percaya begitu saja
@@ -440,6 +450,8 @@ export async function handleRender(job: JobRow, { db, setProgress }: Ctx): Promi
     await rm(partFile, { force: true });
     throw new Error(`Durasi hasil ${out.durationS.toFixed(2)} dtk tidak sesuai EDL (${expectedS.toFixed(2)} dtk)`);
   }
+  // Dibatalkan tepat saat render selesai: hasil dibuang, tidak dicatat
+  if (await cancel.check()) { await rm(partFile, { force: true }); throw new Error(RENDER_CANCELLED); }
 
   await rename(partFile, finalFile);
   const size = (await stat(finalFile)).size;

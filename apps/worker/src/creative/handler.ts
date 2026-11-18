@@ -120,7 +120,7 @@ export async function prepareMotion(db: SupabaseClient, projectId: string, style
   const usable = opt.endClip ? materials.filter((m) => m.mime.startsWith("image/") && files.some((f) => f.id === m.id)) : materials;
   // SFX hanya ikut saat ada isyarat (render MP4); still dan brief tidak memutar audio
   const props = (srcFor: (id: string) => string, overlay?: string, creativeSfx?: SfxCue[], replacesCaptions?: boolean, fonts?: FontRef[]) =>
-    buildMotionProps({ ...(fonts?.length ? { fonts } : {}), aspect: style.aspect, settings: style.motion, colors, materials: usable, srcFor, fileFor: (m) => files.find((f) => f.id === m.id)?.workFile ?? "", overlay, voiceover, captions: replacesCaptions ? undefined : motionCaptions(style, voiceover?.words),
+    buildMotionProps({ ...(fonts?.length ? { fonts } : {}), aspect: style.aspect, settings: style.motion, colors, materials: usable, srcFor, fileFor: (m) => files.find((f) => f.id === m.id)?.workFile ?? "", overlay, voiceover, captions: replacesCaptions ? undefined : motionCaptions(style, voiceover?.words), safeArea: resolveStyle(style).safeArea,
       ...(creativeSfx !== undefined ? { sfx: { style, creativeSfx, srcFor: (id: string) => srcFor(`sfx:${id}`), lengthFor: (id: string) => getSfx(id)?.durationS } } : {}) });
   // Brief untuk AI: src diganti penanda (URL sungguhan hanya ada saat render); file = salinan yang bisa dilihat
   return { voiceover, data: motionCreativeData(props((id) => `(URL bahan ${id.slice(0, 8)}, diisi saat render)`)), files, knowledge, props };
@@ -155,7 +155,7 @@ async function prepareVideo(db: SupabaseClient, projectId: string, raw: AssetRow
     width: built.props.width, height: built.props.height, fps: built.props.fps, durationInFrames: timeline.durationInFrames,
     aspect: built.props.aspect, words: timeline.words, joins: timeline.joins, colors: built.props.style.colors,
     fonts: { jakarta: FONTS.jakarta.label, montserrat: FONTS.montserrat.label, inter: FONTS.inter.label },
-    safeArea: safeAreaPx(built.props.aspect, built.props.width, built.props.height),
+    safeArea: safeAreaPx(built.props.aspect, built.props.width, built.props.height, built.props.safeArea !== false),
     ...(assets.length ? { assets } : {}),
     ...(talent ? { faces } : {}),
   };
@@ -355,7 +355,7 @@ export async function handleCreative(job: JobRow, { db, setProgress }: Ctx): Pro
         const budget = Math.max(2 * 60_000, deadline - Date.now() - CREATIVE.agentReserveMs);
         let r: Awaited<ReturnType<typeof runAgent>>;
         try {
-          r = await runAgent("claude", { prompt: p, cwd: dir, systemPrompt: [isMotion ? motionSystemPrompt(prep!.knowledge.map((k) => k.workFile)) : SYSTEM_PROMPT, isAnimasi ? animasiInstruction() : "", opiniPrompt, ownPrompt, talentPrompt, characterPrompt, fontPrompt, endClipPrompt, safeAreaInstruction({ aspect: data.aspect, width: data.width, height: data.height }), subtitlePrompt, designPrompt, shotPrompt, referencePrompt].filter(Boolean).join(" "), timeoutMs: budget, maxTurns: CREATIVE.maxTurns, model, signal: ctrl.signal, onActivity: act.add });
+          r = await runAgent("claude", { prompt: p, cwd: dir, systemPrompt: [isMotion ? motionSystemPrompt(prep!.knowledge.map((k) => k.workFile)) : SYSTEM_PROMPT, isAnimasi ? animasiInstruction() : "", opiniPrompt, ownPrompt, talentPrompt, characterPrompt, fontPrompt, endClipPrompt, safeAreaInstruction({ aspect: data.aspect, width: data.width, height: data.height, follow: resolveStyle(baseStyle).safeArea }), subtitlePrompt, designPrompt, shotPrompt, referencePrompt].filter(Boolean).join(" "), timeoutMs: budget, maxTurns: CREATIVE.maxTurns, model, signal: ctrl.signal, onActivity: act.add });
         } catch (e) {
           if (ctrl.signal.aborted || !(e instanceof Error) || !/melewati batas waktu/i.test(e.message)) throw e;
           last.agentTimedOut = true;
@@ -372,7 +372,7 @@ export async function handleCreative(job: JobRow, { db, setProgress }: Ctx): Pro
         chosenFonts = picked.fonts;
         if (picked.errors.length) { act.add(`✕ fonts.json: ${picked.errors[0]}`); return { ok: false, stage: "kode", errors: picked.errors }; }
         if (unchangedFromBase(out, base) && !picked.fonts.length) return { ok: false, stage: "kode", errors: ["Kode sama persis dengan versi dasar: permintaan belum diterapkan. Ubah berkasnya sesuai permintaan."] };
-        const errors = [...checkCode(out, data, frames.map((f) => f.frame)), ...parseSfxFile(out.sfx, sfxLib, data.durationInFrames / data.fps).errors, ...logoErrors(prompt, out, data), ...(isOpini ? opinionErrors(out, data) : []), ...(ownCount ? ownAssetErrors(out, data) : []), ...characterErrors(out, data), ...referenceErrors(!!reference, existsSync(path.join(dir, "reference.md"))), ...safeAreaErrors(out, data.aspect)];
+        const errors = [...checkCode(out, data, frames.map((f) => f.frame)), ...parseSfxFile(out.sfx, sfxLib, data.durationInFrames / data.fps).errors, ...logoErrors(prompt, out, data), ...(isOpini ? opinionErrors(out, data) : []), ...(ownCount ? ownAssetErrors(out, data) : []), ...characterErrors(out, data), ...referenceErrors(!!reference, existsSync(path.join(dir, "reference.md"))), ...safeAreaErrors(out, data.aspect, resolveStyle(baseStyle).safeArea)];
         if (errors.length) { act.add(`✕ Pemeriksaan kode: ${errors.length} masalah, mis. ${errors[0]}`); return { ok: false, stage: "kode", errors }; }
         act.add("✓ Pemeriksaan kode lolos");
         await setStage("still", round);
